@@ -1,0 +1,90 @@
+[project]
+name = "gtfs-zone-crimes"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Crimes against the GTFS specification, checked daily for crimes.gtfs.zone"
+license = "AGPL-3.0-or-later"
+dependencies = [
+    "httpx>=0.27",
+    "polars>=1.30",
+]
+
+[project.optional-dependencies]
+# dagster pinned to feed-catalog's: this is a code location in its instance.
+pipeline = [
+    "boto3>=1.35",
+    "botocore>=1.35",
+    "dagster==1.13.24",
+    "dagster-postgres==0.29.24",
+]
+
+[project.scripts]
+crimes = "gtfs_zone_crimes.cli:main"
+
+[project.urls]
+Homepage = "https://crimes.gtfs.zone"
+Source = "https://github.com/gtfs-zone/gtfs-zone-crimes"
+
+[dependency-groups]
+dev = [
+    "commitizen",
+    "dagster-webserver==1.13.24",
+    "deptry>=0.25.1",
+    "moto[s3]>=5.0",
+    "pytest>=8.0",
+    "respx>=0.22",
+    "ruff",
+    "vulture>=2.16",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gtfs_zone_crimes"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+extend-exclude = ["node_modules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ANN", "TC", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests take fixtures by name and return nothing worth annotating.
+"tests/**" = ["ANN"]
+
+[tool.vulture]
+paths = ["src"]
+ignore_decorators = ["@asset", "@schedule", "@sensor"]
+ignore_names = [
+    "defs",
+    # The `crimes` console script
+    "main",
+    # Persisted in records.json for whoever reads the state
+    "checked",
+    "judge_error",
+]
+
+[tool.deptry]
+per_rule_ignores.DEP002 = [
+    "dagster-postgres",  # run storage, named in the infra dagster.yaml
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_provider = "uv"
+version_files = ["package.json:\"version\""]
+update_changelog_on_bump = true
+major_version_zero = true
+annotated_tag = true
+bump_message = "chore(release): bump version $current_version -> $new_version"
+pre_bump_hooks = [
+    "bash -c 'branch=$(git branch --show-current); [ \"$branch\" = \"main\" ] || { echo \"Error: cz bump must be run on main (currently on \\\"$branch\\\")\"; exit 1; }'",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,49 @@
+publiccodeYmlVersion: "0.4"
+
+name: GTFS.zone Crimes
+url: "https://github.com/gtfs-zone/gtfs-zone-crimes"
+landingURL: "https://crimes.gtfs.zone"
+
+platforms:
+  - web
+
+categories:
+  - data-analytics
+  - data-visualization
+
+developmentStatus: beta
+
+softwareType: "standalone/web"
+
+description:
+  en:
+    shortDescription: >
+      An opinionated list of crimes against the GTFS specification, and the
+      public feeds convicted of them.
+    longDescription: >
+      GTFS.zone Crimes downloads every public GTFS Schedule feed in the
+      gtfs.zone feed catalog each day and checks it against a list of
+      deliberately opinionated rules: impossible scheduled speeds, schedules
+      behind API keys, oversized shapes, stops modelled as stations, zips that
+      compress nothing, calendars listed one day at a time, and more. Each rule
+      has its own check, so a feed that fixes the problem is pardoned
+      automatically on the next run. The results are published as JSON and
+      shown at crimes.gtfs.zone.
+    features:
+      - A gallery of crimes with conviction counts and worst offenders
+      - Per-feed rap sheets and a Most Wanted ranking
+      - Automatic pardons when a feed is fixed
+
+legal:
+  license: AGPL-3.0-or-later
+
+maintenance:
+  type: community
+  contacts:
+    - name: Max Katz-Christy
+      email: maxkatzchristy@gmail.com
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en

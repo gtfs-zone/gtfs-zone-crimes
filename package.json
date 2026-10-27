@@ -1,0 +1,45 @@
+{
+  "name": "gtfs-zone-crimes",
+  "version": "0.1.0",
+  "description": "Crimes against the GTFS specification, and the feeds convicted of them",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run knip",
+    "lint": "eslint web/src/ vite.config.ts --max-warnings 0",
+    "lint:fix": "eslint web/src/ vite.config.ts --fix",
+    "format": "prettier --write web/src/ vite.config.ts",
+    "knip": "knip",
+    "vuln": "sh scripts/vuln-gate.sh",
+    "commit": "cz commit"
+  },
+  "keywords": [
+    "gtfs",
+    "transit"
+  ],
+  "author": "gtfs.zone contributors",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.0",
+    "autoprefixer": "^10.6.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "knip": "^6.39.0",
+    "prettier": "^3.9.9",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^7.3.7"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "daisyui": "^5.7.46",
+    "gtfs-zone-web-common": "github:gtfs-zone/gtfs-zone-web-common#v5.14.0",
+    "marked": "^16.4.1"
+  }
+}

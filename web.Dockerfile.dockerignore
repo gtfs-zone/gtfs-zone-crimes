@@ -1,0 +1,4 @@
+# Only dist/ and nginx.conf belong in the build context.
+*
+!dist
+!nginx.conf
