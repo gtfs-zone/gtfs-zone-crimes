@@ -16,6 +16,8 @@ pipeline = [
     "botocore>=1.35",
     "dagster==1.13.24",
     "dagster-postgres==0.29.24",
+    # 2.1 drives postgresql:// with psycopg 3; the instance uses psycopg2.
+    "sqlalchemy>=2.0,<2.1",
 ]
 
 [project.scripts]
@@ -71,6 +73,7 @@ ignore_names = [
 [tool.deptry]
 per_rule_ignores.DEP002 = [
     "dagster-postgres",  # run storage, named in the infra dagster.yaml
+    "sqlalchemy",  # pinned for the run storage driver
 ]
 
 [tool.commitizen]
