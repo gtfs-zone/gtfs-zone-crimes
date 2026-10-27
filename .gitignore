@@ -1,0 +1,21 @@
+.env
+.envrc
+*.log
+.DS_Store
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+dagster_home/
+.tmp_dagster_home_*/
+
+node_modules/
+.cache/
+
+# Written by `crimes judge` for the dev server
+web/dev-data/

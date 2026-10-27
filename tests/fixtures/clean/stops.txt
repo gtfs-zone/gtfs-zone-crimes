@@ -1,0 +1,5 @@
+stop_id,stop_name,stop_lat,stop_lon
+A,Main St & 1st Ave,45.5000,-122.6000
+B,Main St & 5th Ave,45.5100,-122.6000
+C,Oak St Transit Center,45.5300,-122.6000
+D,Elm St & Park Rd,45.5600,-122.6000
