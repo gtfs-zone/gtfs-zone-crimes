@@ -1,3 +1,9 @@
+## v0.3.0 (2026-10-28)
+
+### Feat
+
+- pardon only within a rule revision and route on paths
+
 ## v0.2.1 (2026-10-28)
 
 ### Fix
