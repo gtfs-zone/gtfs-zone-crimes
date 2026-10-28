@@ -1,3 +1,9 @@
+## v0.2.1 (2026-10-28)
+
+### Fix
+
+- **web**: stop the theme toggle tooltip from widening the page
+
 ## v0.2.0 (2026-10-28)
 
 ### Feat
