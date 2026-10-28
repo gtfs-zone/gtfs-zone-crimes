@@ -1,6 +1,6 @@
 {
   "name": "gtfs-zone-crimes",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Crimes against the GTFS specification, and the feeds convicted of them",
   "type": "module",
   "private": true,

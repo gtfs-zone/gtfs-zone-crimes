@@ -1,3 +1,13 @@
+## v0.2.0 (2026-10-28)
+
+### Feat
+
+- judge only running service and rank convictions by feed size
+
+### Fix
+
+- **web**: stop horizontal page scroll on narrow screens
+
 ## v0.1.1 (2026-10-27)
 
 ### Fix
