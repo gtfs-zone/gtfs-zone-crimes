@@ -9,6 +9,8 @@ export interface CrimeCount {
   scope: 'catalog' | 'archive' | 'content';
   convicted: number;
   judged: number;
+  /** Bumped when a rule change could acquit unchanged feeds. */
+  revision: number;
 }
 
 export interface Conviction {
@@ -28,6 +30,8 @@ export interface Pardon {
   since: string;
   pardoned: string;
   summary: string;
+  /** The crime's revision that issued the pardon. */
+  revision: number;
 }
 
 /** The catalog's realtime roles; `realtime` is an endpoint of undeclared type. */

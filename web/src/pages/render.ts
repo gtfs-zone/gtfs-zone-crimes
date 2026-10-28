@@ -33,7 +33,7 @@ export function feedCell(doc: CrimesDoc, feedId: string): string {
   const name = escapeHtml(feed?.name ?? feedId);
   const sub = [feed?.subtitle, feed?.place].filter(Boolean).join(' - ');
   return (
-    `<a href="#/feed/${feedId}" class="link link-hover font-medium wrap-anywhere">${name}</a>` +
+    `<a href="/feed/${feedId}" class="link link-hover font-medium wrap-anywhere">${name}</a>` +
     ` <a href="${listUrl(feedId)}" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs opacity-60 whitespace-nowrap">${t('feed.listShort')}</a>` +
     (sub
       ? `<div class="text-xs opacity-60 wrap-anywhere">${escapeHtml(sub)}</div>`
@@ -42,7 +42,7 @@ export function feedCell(doc: CrimesDoc, feedId: string): string {
 }
 
 export function crimeBadge(slug: string): string {
-  return `<a href="#/crime/${slug}" class="badge badge-error badge-outline badge-sm whitespace-nowrap">${escapeHtml(crimeTitle(slug))}</a>`;
+  return `<a href="/crime/${slug}" class="badge badge-error badge-outline badge-sm whitespace-nowrap">${escapeHtml(crimeTitle(slug))}</a>`;
 }
 
 export function evidence(conviction: Conviction, open = false): string {

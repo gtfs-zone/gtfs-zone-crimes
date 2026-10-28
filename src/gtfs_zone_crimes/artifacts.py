@@ -39,9 +39,13 @@ def build_crimes(
 ) -> dict[str, Any]:
     """Today's verdicts, with conviction dates carried forward from `previous`.
     A conviction that can no longer be judged (the download failed, the zip
-    was too big) stands as it was; one that is now acquitted becomes a pardon.
-    Feeds whose service has ended are left out altogether."""
+    was too big) stands as it was; one that is now acquitted becomes a pardon,
+    unless the crime's revision changed since `previous`, when it is dropped.
+    Pardons are kept only under the revision that issued them. Feeds whose
+    service has ended are left out altogether."""
     previous = previous or {}
+    revision = {crime.slug: crime.revision for crime in CRIMES}
+    before_revision = {c["slug"]: c.get("revision") for c in previous.get("crimes", [])}
     feeds = [
         feed
         for feed in feeds
@@ -75,7 +79,7 @@ def build_crimes(
                         },
                     }
                 )
-            elif key in before:
+            elif key in before and before_revision.get(slug) == revision[slug]:
                 pardons.append(
                     {
                         "crime": slug,
@@ -83,6 +87,7 @@ def build_crimes(
                         "since": before[key]["since"],
                         "pardoned": today.isoformat(),
                         "summary": before[key].get("summary", ""),
+                        "revision": revision[slug],
                     }
                 )
         for old in before_by_feed.get(feed.id, []):
@@ -96,6 +101,7 @@ def build_crimes(
         if p["pardoned"] >= cutoff
         and p["feedId"] in live
         and p["crime"] in judged
+        and p.get("revision") == revision[p["crime"]]
         and (p["crime"], p["feedId"], p["pardoned"]) not in seen
     ]
     order = {crime.slug: i for i, crime in enumerate(CRIMES)}
@@ -122,6 +128,7 @@ def build_crimes(
                 "scope": str(crime.scope),
                 "convicted": convicted[crime.slug],
                 "judged": judged[crime.slug],
+                "revision": crime.revision,
             }
             for crime in CRIMES
         ],

@@ -48,11 +48,39 @@ def test_acquittal_is_a_pardon():
             "since": "2026-10-23",
             "pardoned": "2026-10-26",
             "summary": "Static schedule behind an API key",
+            "revision": 1,
         }
     ]
     # A second run the same day keeps the pardon once.
     third = build([feed()], previous=second)
     assert len(third["pardons"]) == 1
+
+
+def test_acquittal_across_a_revision_is_not_a_pardon():
+    first = build(
+        [feed(auth=frozenset({"scheduled"}))], today=TODAY - timedelta(days=3)
+    )
+    for crime in first["crimes"]:
+        crime["revision"] = 0
+    second = build([feed()], previous=first)
+    assert not second["convictions"]
+    assert not second["pardons"]
+
+
+def test_pardons_of_other_revisions_are_dropped():
+    pardon = {
+        "crime": "api-key",
+        "feedId": "f-0123456789",
+        "since": "2026-10-01",
+        "pardoned": "2026-10-20",
+        "summary": "",
+    }
+    unrevised = build([feed()], previous={"pardons": [pardon]})
+    assert not unrevised["pardons"]
+    older = build([feed()], previous={"pardons": [{**pardon, "revision": 0}]})
+    assert not older["pardons"]
+    current = build([feed()], previous={"pardons": [{**pardon, "revision": 1}]})
+    assert len(current["pardons"]) == 1
 
 
 def test_old_pardons_expire():

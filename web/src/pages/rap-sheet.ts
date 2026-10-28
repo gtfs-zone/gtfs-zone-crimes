@@ -27,7 +27,7 @@ export function renderRapSheet(doc: CrimesDoc, feedId: string): string {
       (c) => `<div class="card bg-base-100 border border-base-300">
         <div class="card-body gap-2">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
-            <a href="#/crime/${c.crime}" class="card-title link link-hover">${escapeHtml(crimeTitle(c.crime))}</a>
+            <a href="/crime/${c.crime}" class="card-title link link-hover">${escapeHtml(crimeTitle(c.crime))}</a>
             <span class="text-xs opacity-60">${t('crime.since', { date: day(c.since) })}</span>
           </div>
           ${evidence(c, true)}
