@@ -87,6 +87,10 @@ renderNavbarActions(document.getElementById('navbar-actions')!, [
     value: 'light',
   },
 ]);
+// Open the rightmost tooltip leftward so it does not overhang the viewport.
+document
+  .querySelector('#navbar-actions > .tooltip:last-child')
+  ?.classList.replace('tooltip-bottom', 'tooltip-left');
 new ThemeController().initialize();
 document.getElementById('app-version')!.textContent = `v${__APP_VERSION__}`;
 renderNav(window.location.hash);

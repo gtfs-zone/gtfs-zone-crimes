@@ -26,8 +26,8 @@ export function renderGallery(doc: CrimesDoc): string {
     const top = feedId ? first.get(`${crime.slug}/${feedId}`) : undefined;
     const offender = top
       ? `<div class="text-xs uppercase opacity-60">${t('crime.worst')}</div>
-         <div class="font-medium">${escapeHtml(doc.feeds[top.feedId]?.name ?? top.feedId)}</div>
-         <div class="text-sm opacity-80 line-clamp-2">${escapeHtml(top.summary ?? '')}</div>`
+         <div class="font-medium wrap-anywhere">${escapeHtml(doc.feeds[top.feedId]?.name ?? top.feedId)}</div>
+         <div class="text-sm opacity-80 line-clamp-2 wrap-anywhere">${escapeHtml(top.summary ?? '')}</div>`
       : `<div class="text-sm opacity-60">${t('crime.none')}</div>`;
     const badge = crime.convicted ? 'badge-error' : 'badge-success';
     return `
@@ -52,5 +52,5 @@ export function renderGallery(doc: CrimesDoc): string {
       ${stat(byFeed(doc).size, t('home.convicted'))}
       ${stat(doc.pardons.length, t('home.pardons'))}
     </div>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">${cards.join('')}</div>`;
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">${cards.join('')}</div>`;
 }

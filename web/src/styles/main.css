@@ -12,6 +12,7 @@
 /* Crime write-ups rendered from markdown. */
 .write-up {
   line-height: 1.65;
+  overflow-wrap: break-word;
 }
 .write-up p,
 .write-up ul,

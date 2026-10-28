@@ -47,8 +47,8 @@ export function renderRapSheet(doc: CrimesDoc, feedId: string): string {
   return `
     <div class="text-xs uppercase opacity-60">${t('feed.title')}</div>
     ${pageHeader(feed.name)}
-    ${sub ? `<p class="opacity-70">${escapeHtml(sub)}</p>` : ''}
+    ${sub ? `<p class="opacity-70 wrap-anywhere">${escapeHtml(sub)}</p>` : ''}
     ${feedLinks(feedId, feed)}
-    <div class="grid gap-4 mt-6">${cards || `<p class="opacity-60">${t('feed.clean')}</p>`}</div>
+    <div class="grid grid-cols-1 gap-4 mt-6">${cards || `<p class="opacity-60">${t('feed.clean')}</p>`}</div>
     ${pardonList}`;
 }
