@@ -28,12 +28,14 @@ class Scope(StrEnum):
 @dataclass(frozen=True)
 class Verdict:
     """The outcome of one crime for one feed. `metric` ranks convictions,
-    larger is worse; `summary` is the one line the site shows."""
+    larger is worse; `summary` is the one line the site shows; `until` is the
+    last date (ISO) the offending service runs, after which it is pardoned."""
 
     guilty: bool
     summary: str = ""
     metric: float | None = None
     details: list[str] = field(default_factory=list)
+    until: str | None = None
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {"guilty": self.guilty}
@@ -43,6 +45,8 @@ class Verdict:
             out["metric"] = self.metric
         if self.details:
             out["details"] = self.details
+        if self.until:
+            out["until"] = self.until
         return out
 
     @classmethod
@@ -52,6 +56,7 @@ class Verdict:
             summary=data.get("summary", ""),
             metric=data.get("metric"),
             details=data.get("details", []),
+            until=data.get("until"),
         )
 
 

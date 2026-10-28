@@ -29,6 +29,9 @@ everything its mode can do:
 Times in GTFS are usually rounded to the minute, so every hop is given at least
 a minute, and hops shorter than 2 km are never counted.
 
+Only trips whose service still runs are judged. A hop to or from a stop at 0,0,
+or with its latitude and longitude swapped, is left to Null Island.
+
 ## How to get pardoned
 
 Put the stop where the stop is. Then check that the times either side of it

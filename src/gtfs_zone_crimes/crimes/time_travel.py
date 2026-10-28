@@ -1,5 +1,6 @@
 """Time travel: trips that arrive before they leave. Times past 24:00 or even
-48:00 are fine (overnight trains have them); going backwards is not."""
+48:00 are fine (overnight trains have them); going backwards is not. Only
+trips that still run are judged."""
 
 import polars as pl
 
@@ -14,7 +15,7 @@ def clock(value: int) -> str:
 
 
 def judge(gtfs: Gtfs) -> Verdict | None:
-    pairs = gtfs.pairs(timed=True)
+    pairs = gtfs.pairs(timed=True, active=True)
     if pairs is None:
         return None
     backwards = pairs.filter((pl.col("seconds") < 0) | (pl.col("dwell") < 0))
@@ -50,6 +51,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         summary=f"{trips:,} trip(s) go back in time; {details[0]}",
         metric=trips,
         details=details,
+        until=gtfs.until(backwards["trip_id"]),
     )
 
 

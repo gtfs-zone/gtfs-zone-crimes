@@ -10,7 +10,6 @@ from gtfs_zone_crimes.crimes import (
     disguised_as_html,
     eternal_service,
     every_day_is_special,
-    expired,
     grand_central_everywhere,
     groundhog_day,
     invisible_ink,
@@ -39,6 +38,5 @@ CRIMES: list[Crime] = [
     shouting.CRIME,
     eternal_service.CRIME,
     disguised_as_html.CRIME,
-    expired.CRIME,
     dead_link.CRIME,
 ]

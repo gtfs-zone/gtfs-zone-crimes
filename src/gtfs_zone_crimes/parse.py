@@ -13,7 +13,10 @@ from typing import TYPE_CHECKING
 
 import polars as pl
 
+from gtfs_zone_crimes.facts import WEEKDAYS
+
 if TYPE_CHECKING:
+    from datetime import date
     from pathlib import Path
 
     from gtfs_zone_crimes.zipfacts import ZipFacts
@@ -57,12 +60,16 @@ def read_header(path: Path) -> list[str]:
 
 
 class Gtfs:
-    """The tables of one GTFS zip. Call `close()` to remove extracted files."""
+    """The tables of one GTFS zip, judged as of `today`. Call `close()` to
+    remove extracted files."""
 
-    def __init__(self, zip_path: Path, facts: ZipFacts, workdir: Path) -> None:
+    def __init__(
+        self, zip_path: Path, facts: ZipFacts, workdir: Path, today: date
+    ) -> None:
         self.zip_path = zip_path
         self.facts = facts
         self.workdir = workdir
+        self.today = today
         workdir.mkdir(parents=True, exist_ok=True)
 
     def close(self) -> None:
@@ -254,20 +261,91 @@ class Gtfs:
             frame.sort(pl.col("trip_id").to_physical(), "stop_sequence")
         )
 
-    def pairs(self, timed: bool) -> pl.DataFrame | None:
+    @cached_property
+    def active(self) -> pl.DataFrame | None:
+        """Trips whose service runs on or after `today`, with the last date it
+        runs (`until`): the latest calendar.txt end_date on a row with any
+        weekday set, or added calendar_dates.txt date. None when the feed has
+        neither file, so nothing can be said to have ended."""
+        # YYYYMMDD sorts as text, so past dates are dropped before parsing.
+        today = self.today.strftime("%Y%m%d")
+        ends: list[pl.LazyFrame] = []
+        calendar = self.table("calendar", ["service_id", "end_date", *WEEKDAYS])
+        if calendar is not None:
+            ends.append(
+                calendar.filter(
+                    (pl.col("end_date") >= today)
+                    & pl.any_horizontal(pl.col(day) == "1" for day in WEEKDAYS)
+                ).select("service_id", date=pl.col("end_date"))
+            )
+        dates = self.table("calendar_dates", ["service_id", "date", "exception_type"])
+        if dates is not None:
+            ends.append(
+                dates.filter(
+                    (pl.col("date") >= today) & (pl.col("exception_type") == "1")
+                ).select("service_id", "date")
+            )
+        trips = self.table("trips", ["trip_id", "service_id"])
+        if not ends or trips is None:
+            return None
+        services = (
+            pl.concat(ends)
+            .select(
+                "service_id", date=pl.col("date").str.to_date("%Y%m%d", strict=False)
+            )
+            .drop_nulls()
+            .group_by("service_id")
+            .agg(until=pl.col("date").max())
+            .filter(pl.col("until") >= self.today)
+        )
+        return self.collect(
+            trips.drop_nulls()
+            .unique("trip_id")
+            .join(services, on="service_id")
+            .select(pl.col("trip_id").cast(pl.Categorical), "until")
+        )
+
+    def running(self) -> pl.LazyFrame | None:
+        """`sequence` cut to the active trips, in the same order; all of it when
+        the feed has no calendar, None when no trip runs any more."""
+        frame = self.sequence
+        if frame is None or self.active is None:
+            return None if frame is None else frame.lazy()
+        if self.active.is_empty():
+            return None
+        return frame.lazy().join(
+            self.active.lazy().select("trip_id"),
+            on="trip_id",
+            how="semi",
+            maintain_order="left",
+        )
+
+    def until(self, trips: pl.Series) -> str | None:
+        """The last date (ISO) any of `trips` runs, when the feed says."""
+        if self.active is None:
+            return None
+        last = self.active.join(
+            trips.unique().to_frame("trip_id"), on="trip_id", how="semi"
+        )["until"].max()
+        return last.isoformat() if last is not None else None  # type: ignore[union-attr]
+
+    def pairs(self, timed: bool, active: bool = False) -> pl.DataFrame | None:
         """One row per pair of consecutive stops in a trip: the stops, the
         distance, and when `timed`, the scheduled seconds between them (arrival
         minus the previous departure) and the dwell at the second stop. Timed
-        pairs skip untimed stops, so they span the stops between two times."""
-        frame = self.sequence
+        pairs skip untimed stops, so they span the stops between two times.
+        With `active`, only the trips that still run (None when none do)."""
+        if active:
+            frame = self.running()
+        else:
+            frame = None if self.sequence is None else self.sequence.lazy()
         if frame is None:
             return None
         if timed:
             frame = frame.filter(pl.col("arr").is_not_null())
         same_trip = pl.col("trip_id").shift(1) == pl.col("trip_id")
         return (
-            frame.lazy()
-            .with_columns(
+            frame.with_columns(
                 from_stop=pl.col("stop_id").shift(1),
                 km=haversine_km(
                     pl.col("lat").shift(1),
