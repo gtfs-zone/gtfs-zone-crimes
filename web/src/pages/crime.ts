@@ -39,7 +39,7 @@ export function renderCrime(
     .join('');
   const more =
     shown.length < convictions.length
-      ? `<a href="#/crime/${slug}/all" class="btn btn-sm mt-3">${t('crime.showAll', { count: convictions.length })}</a>`
+      ? `<a href="/crime/${slug}/all" class="btn btn-sm mt-3">${t('crime.showAll', { count: convictions.length })}</a>`
       : '';
   const table = convictions.length
     ? `<div class="overflow-x-auto"><table class="table table-sm">

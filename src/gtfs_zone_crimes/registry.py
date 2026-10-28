@@ -1,4 +1,4 @@
-"""Every crime, in the order the gallery lists them."""
+"""Every crime, in the order the site lists them when tied on convictions."""
 
 from gtfs_zone_crimes.crime import Crime
 from gtfs_zone_crimes.crimes import (

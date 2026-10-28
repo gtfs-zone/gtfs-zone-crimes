@@ -95,11 +95,11 @@ Pushing a version tag triggers `.github/workflows/build.yml`, which builds both 
 ## Adding a crime
 
 1. A module in `src/gtfs_zone_crimes/crimes/` with a `CRIME = Crime(...)`: a slug, a scope (what it is judged on) and a judge returning a `Verdict`, or `None` when the feed cannot be judged.
-2. Its entry in `CRIMES` in `src/gtfs_zone_crimes/registry.py`, in gallery order.
+2. Its entry in `CRIMES` in `src/gtfs_zone_crimes/registry.py`; the gallery sorts by convictions and breaks ties in this order.
 3. Its write-up in `content/crimes/<slug>.md`: frontmatter `title` and `tagline` (and optionally `featured`, a feed id shown as Exhibit A), then the case against it, the law, and how to get pardoned.
 4. Tests in `tests/` that convict and acquit it, starting from the clean fixture.
 
-A new release judges every zip again, so a changed rule takes effect on the next run after the release.
+A new release judges every zip again, so a changed rule takes effect on the next run after the release. When a change could acquit feeds that did not change, bump the crime's `revision`: acquittals across a revision are dropped instead of pardoned, and the old revision's pardons are cleared.
 
 ## Git Hooks
 

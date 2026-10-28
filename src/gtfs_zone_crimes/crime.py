@@ -66,12 +66,15 @@ ACQUITTED = Verdict(guilty=False)
 @dataclass(frozen=True)
 class Crime:
     """A judge returns a Verdict, or None when the feed cannot be judged (the
-    input it needs is missing). `feeds` limits the crime to those feed ids."""
+    input it needs is missing). `feeds` limits the crime to those feed ids.
+    `revision` is bumped when a rule change could acquit unchanged feeds; an
+    acquittal across revisions is not a pardon."""
 
     slug: str
     scope: Scope
     judge: Callable[[Any], Verdict | None]
     feeds: frozenset[str] | None = None
+    revision: int = 1
 
     def applies_to(self, feed_id: str) -> bool:
         return self.feeds is None or feed_id in self.feeds

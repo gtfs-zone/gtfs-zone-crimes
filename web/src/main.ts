@@ -1,7 +1,7 @@
 /**
- * Entry point: loads crimes.json once, then renders the page the hash names.
- * Routes: #/ (gallery), #/crime/<slug>[/all], #/feed/<id>, #/most-wanted,
- * #/pardoned.
+ * Entry point: loads crimes.json once, then renders the page the path names.
+ * Routes: / (gallery), /crime/<slug>[/all], /feed/<id>, /most-wanted,
+ * /pardoned. Old #/ links are rewritten to their path.
  */
 import {
   renderMoonIcon,
@@ -27,14 +27,14 @@ const footer = document.getElementById('footer')!;
 const nav = document.getElementById('nav-links')!;
 
 const LINKS: [string, string][] = [
-  ['#/', t('nav.gallery')],
-  ['#/most-wanted', t('nav.mostWanted')],
-  ['#/pardoned', t('nav.pardoned')],
+  ['/', t('nav.gallery')],
+  ['/most-wanted', t('nav.mostWanted')],
+  ['/pardoned', t('nav.pardoned')],
 ];
 
-function renderNav(hash: string): void {
+function renderNav(path: string): void {
   const active =
-    LINKS.find(([href]) => href !== '#/' && hash.startsWith(href))?.[0] ?? '#/';
+    LINKS.find(([href]) => href !== '/' && path.startsWith(href))?.[0] ?? '/';
   nav.innerHTML = LINKS.map(
     ([href, label]) =>
       `<a href="${href}" class="btn btn-ghost btn-sm px-2 sm:px-3${href === active ? ' btn-active' : ''}">${escapeHtml(label)}</a>`
@@ -42,8 +42,8 @@ function renderNav(hash: string): void {
 }
 
 function route(doc: CrimesDoc): void {
-  const hash = window.location.hash || '#/';
-  const [, section, id, extra] = hash.split('/');
+  const path = window.location.pathname;
+  const [, section, id, extra] = path.split('/');
   let title = t('home.title');
   if (section === 'crime' && id) {
     page.innerHTML = renderCrime(doc, id, extra === 'all');
@@ -61,8 +61,33 @@ function route(doc: CrimesDoc): void {
     page.innerHTML = renderGallery(doc);
   }
   document.title = `${title} - crimes.gtfs.zone`;
-  renderNav(hash);
+  renderNav(path);
   window.scrollTo(0, 0);
+}
+
+/** Follows same-origin links with pushState instead of a page load. */
+function followLinks(doc: CrimesDoc): void {
+  document.addEventListener('click', (event) => {
+    const link = (event.target as Element).closest('a');
+    if (
+      !link ||
+      link.target ||
+      link.origin !== window.location.origin ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    if (link.pathname !== window.location.pathname) {
+      history.pushState(null, '', link.pathname);
+    }
+    route(doc);
+  });
+  window.addEventListener('popstate', () => route(doc));
 }
 
 function renderFooter(doc: CrimesDoc): void {
@@ -93,7 +118,10 @@ document
   ?.classList.replace('tooltip-bottom', 'tooltip-left');
 new ThemeController().initialize();
 document.getElementById('app-version')!.textContent = `v${__APP_VERSION__}`;
-renderNav(window.location.hash);
+if (window.location.hash.startsWith('#/')) {
+  history.replaceState(null, '', window.location.hash.slice(1));
+}
+renderNav(window.location.pathname);
 
 loadCrimes()
   .then((doc) => {
@@ -101,7 +129,7 @@ loadCrimes()
     doc.crimes = doc.crimes.filter((c) => WRITE_UPS.has(c.slug));
     renderFooter(doc);
     route(doc);
-    window.addEventListener('hashchange', () => route(doc));
+    followLinks(doc);
   })
   .catch((error: unknown) => {
     page.innerHTML = `<div class="alert alert-error">${escapeHtml(t('error.load', { error: String(error) }))}</div>`;

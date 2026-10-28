@@ -20,7 +20,8 @@ export function renderGallery(doc: CrimesDoc): string {
   const first = new Map(
     doc.convictions.map((c) => [`${c.crime}/${c.feedId}`, c] as const)
   );
-  const cards = doc.crimes.map((crime) => {
+  const ranked = [...doc.crimes].sort((a, b) => b.convicted - a.convicted);
+  const cards = ranked.map((crime) => {
     const writeUp = WRITE_UPS.get(crime.slug);
     const feedId = worst.get(crime.slug);
     const top = feedId ? first.get(`${crime.slug}/${feedId}`) : undefined;
@@ -31,7 +32,7 @@ export function renderGallery(doc: CrimesDoc): string {
       : `<div class="text-sm opacity-60">${t('crime.none')}</div>`;
     const badge = crime.convicted ? 'badge-error' : 'badge-success';
     return `
-      <a href="#/crime/${crime.slug}" class="card bg-base-100 border border-base-300 hover:border-error transition-colors">
+      <a href="/crime/${crime.slug}" class="card bg-base-100 border border-base-300 hover:border-error transition-colors">
         <div class="card-body gap-3">
           <div class="flex items-center justify-between gap-2">
             <span class="badge ${badge}">${t('crime.convicted', { count: crime.convicted })}</span>
