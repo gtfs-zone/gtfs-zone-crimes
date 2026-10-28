@@ -37,7 +37,7 @@ function renderNav(hash: string): void {
     LINKS.find(([href]) => href !== '#/' && hash.startsWith(href))?.[0] ?? '#/';
   nav.innerHTML = LINKS.map(
     ([href, label]) =>
-      `<a href="${href}" class="btn btn-ghost btn-sm${href === active ? ' btn-active' : ''}">${escapeHtml(label)}</a>`
+      `<a href="${href}" class="btn btn-ghost btn-sm px-2 sm:px-3${href === active ? ' btn-active' : ''}">${escapeHtml(label)}</a>`
   ).join('');
 }
 
