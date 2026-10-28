@@ -1,3 +1,9 @@
+## v0.4.0 (2026-10-28)
+
+### Feat
+
+- **web**: link the GitHub repo from the navbar
+
 ## v0.3.0 (2026-10-28)
 
 ### Feat
