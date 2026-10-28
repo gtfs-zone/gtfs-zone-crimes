@@ -33,9 +33,9 @@ export function feedCell(doc: CrimesDoc, feedId: string): string {
   const name = escapeHtml(feed?.name ?? feedId);
   const sub = [feed?.subtitle, feed?.place].filter(Boolean).join(' - ');
   return (
-    `<a href="#/feed/${feedId}" class="link link-hover font-medium">${name}</a>` +
+    `<a href="#/feed/${feedId}" class="link link-hover font-medium wrap-anywhere">${name}</a>` +
     ` <a href="${listUrl(feedId)}" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs opacity-60 whitespace-nowrap">${t('feed.listShort')}</a>` +
-    (sub ? `<div class="text-xs opacity-60">${escapeHtml(sub)}</div>` : '')
+    (sub ? `<div class="text-xs opacity-60 wrap-anywhere">${escapeHtml(sub)}</div>` : '')
   );
 }
 
@@ -49,9 +49,9 @@ export function evidence(conviction: Conviction, open = false): string {
     (line) => line !== conviction.summary
   );
   if (!details.length) {
-    return `<span>${summary}</span>`;
+    return `<span class="wrap-anywhere">${summary}</span>`;
   }
-  return `<details${open ? ' open' : ''}><summary class="cursor-pointer">${summary}</summary><ul class="list-disc list-inside text-sm opacity-80 mt-1">${details
+  return `<details${open ? ' open' : ''} class="wrap-anywhere"><summary class="cursor-pointer">${summary}</summary><ul class="list-disc list-inside text-sm opacity-80 mt-1">${details
     .map((line) => `<li>${escapeHtml(line)}</li>`)
     .join('')}</ul></details>`;
 }

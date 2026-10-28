@@ -34,6 +34,9 @@
   background: var(--color-base-300);
 }
 .write-up table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
 }
 .write-up th,
