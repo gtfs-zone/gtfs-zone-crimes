@@ -35,7 +35,9 @@ export function feedCell(doc: CrimesDoc, feedId: string): string {
   return (
     `<a href="#/feed/${feedId}" class="link link-hover font-medium wrap-anywhere">${name}</a>` +
     ` <a href="${listUrl(feedId)}" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs opacity-60 whitespace-nowrap">${t('feed.listShort')}</a>` +
-    (sub ? `<div class="text-xs opacity-60 wrap-anywhere">${escapeHtml(sub)}</div>` : '')
+    (sub
+      ? `<div class="text-xs opacity-60 wrap-anywhere">${escapeHtml(sub)}</div>`
+      : '')
   );
 }
 
