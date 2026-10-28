@@ -1,4 +1,4 @@
-/** Feeds ranked by how many crimes they stand convicted of. */
+/** Feeds ranked by how many crimes they stand convicted of, then by size. */
 import { CONFIG } from '../config';
 import type { CrimesDoc } from '../data/crimes';
 import { byFeed } from '../data/crimes';
@@ -11,6 +11,7 @@ export function renderMostWanted(doc: CrimesDoc): string {
     .sort(
       ([a, x], [b, y]) =>
         y.length - x.length ||
+        (doc.feeds[b]?.trips ?? 0) - (doc.feeds[a]?.trips ?? 0) ||
         (doc.feeds[a]?.name ?? a).localeCompare(doc.feeds[b]?.name ?? b)
     )
     .slice(0, CONFIG.MOST_WANTED);

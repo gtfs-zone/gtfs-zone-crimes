@@ -10,6 +10,7 @@ import threading
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from datetime import date
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def judge_item(item: tuple[Path, Path]) -> dict[str, Any]:
+def judge_item(item: tuple[Path, Path, date]) -> dict[str, Any]:
     return judge_zip(*item)
 
 
@@ -85,7 +86,9 @@ class Judge:
             with self.judging:
                 started = time.monotonic()
                 result, peak = isolated(
-                    judge_item, (fetched.path, workdir), self.settings.worker_memory
+                    judge_item,
+                    (fetched.path, workdir, date.fromisoformat(self.today)),
+                    self.settings.worker_memory,
                 )
             log.info(
                 "%s: judged %d MB in %.1fs, peak %d MB resident",

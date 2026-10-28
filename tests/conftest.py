@@ -56,7 +56,7 @@ def judge_files(tmp_path):
         files = {**(fixture_files(base) if base else {}), **(overrides or {})}
         path = tmp_path / "feed.zip"
         path.write_bytes(make_zip(files, method))
-        result = judge_zip(path, tmp_path / "work")
+        result = judge_zip(path, tmp_path / "work", TODAY)
         verdicts = result["verdicts"]
         run.facts = result["facts"]
         return {

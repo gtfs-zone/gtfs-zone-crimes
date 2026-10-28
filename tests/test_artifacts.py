@@ -92,6 +92,73 @@ def test_convictions_rank_worst_first():
     assert [c["feedId"] for c in doc["convictions"]] == ["f-000000000b", "f-000000000a"]
 
 
+def test_bigger_feeds_rank_first():
+    feeds = [
+        feed(id="f-000000000a", auth=frozenset({"scheduled"}), trips=40),
+        feed(id="f-000000000b", auth=frozenset({"scheduled"}), trips=90_000),
+    ]
+    doc = build(feeds)
+    assert [c["feedId"] for c in doc["convictions"]] == ["f-000000000b", "f-000000000a"]
+    assert doc["feeds"]["f-000000000b"]["trips"] == 90_000
+
+
+def test_breadth_outweighs_a_little_size():
+    big = UrlRecord(
+        url=URL,
+        facts={"trips": 2000},
+        verdicts={"time-travel": {"guilty": True, "summary": "1", "metric": 1}},
+    )
+    wide_url = "https://example.org/wide.zip"
+    wide = UrlRecord(
+        url=wide_url,
+        facts={"trips": 1000},
+        verdicts={"time-travel": {"guilty": True, "summary": "500", "metric": 500}},
+    )
+    feeds = [
+        feed(id="f-000000000a"),
+        feed(id="f-000000000b", scheduled_urls=(wide_url,)),
+    ]
+    doc = build(feeds, {URL: big, wide_url: wide})
+    assert [c["feedId"] for c in doc["convictions"]] == ["f-000000000b", "f-000000000a"]
+
+
+def test_expired_feeds_are_ignored():
+    first = build([feed(auth=frozenset({"scheduled"}))])
+    second = build(
+        [feed(auth=frozenset({"scheduled"}), service_end="2026-10-01")], previous=first
+    )
+    assert not second["convictions"]
+    assert not second["pardons"]
+    assert second["feedCount"] == 0
+
+
+def test_conviction_past_its_service_is_pardoned():
+    def record(until):
+        verdict = {"guilty": True, "summary": "1", "until": until}
+        return {URL: UrlRecord(url=URL, verdicts={"time-travel": verdict})}
+
+    first = build([feed()], record("2026-10-20"), today=TODAY - timedelta(days=10))
+    assert "until" not in keyed(first)[("time-travel", "f-0123456789")]
+    second = build([feed()], record("2026-10-20"), previous=first)
+    assert not second["convictions"]
+    assert second["pardons"][0]["crime"] == "time-travel"
+
+
+def test_pardons_of_removed_crimes_are_dropped():
+    previous = {
+        "pardons": [
+            {
+                "crime": "expired",
+                "feedId": "f-0123456789",
+                "since": "2026-10-01",
+                "pardoned": "2026-10-20",
+                "summary": "",
+            }
+        ]
+    }
+    assert not build([feed()], previous=previous)["pardons"]
+
+
 def test_feed_summary_carries_open_realtime_urls():
     parsed = parse_feed(
         {

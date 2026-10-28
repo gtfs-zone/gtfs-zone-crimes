@@ -19,7 +19,8 @@ buses, and those platforms are more than a quarter of the feed's bus stops.
 
 Coaches are left out. A route counts as a local bus only when its median gap
 between stops is under 3 km and no trip runs further than 100 km, because
-intercity coach stations are usually real stations.
+intercity coach stations are usually real stations. Only trips whose service
+still runs are judged.
 
 ## How to get pardoned
 

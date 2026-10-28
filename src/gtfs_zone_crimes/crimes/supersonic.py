@@ -1,13 +1,16 @@
 """Ultra high speed service: a scheduled hop faster than anything in its mode
 can go. A bus at 600 km/h, a ferry at 300, or anything at the speed of sound.
 Times are often rounded to the minute, so a hop is given at least a minute
-and hops under 2 km are ignored."""
+and hops under 2 km are ignored. Only trips that still run are judged, and
+hops to or from a stop at 0,0 or with swapped coordinates are left to Null
+Island."""
 
 from typing import Any
 
 import polars as pl
 
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crimes.null_island import stray_stops
 from gtfs_zone_crimes.modes import limit_expr, mode_of
 from gtfs_zone_crimes.parse import Gtfs
 
@@ -16,11 +19,17 @@ MIN_SECONDS = 60
 
 
 def judge(gtfs: Gtfs) -> Verdict | None:
-    pairs = gtfs.pairs(timed=True)
-    if pairs is None:
+    pairs = gtfs.pairs(timed=True, active=True)
+    if pairs is None or gtfs.stops is None:
         return None
+    stray = stray_stops(gtfs.stops)["stop_id"].implode()
     speeding = (
-        pairs.filter((pl.col("km") >= MIN_KM) & (pl.col("seconds") >= 0))
+        pairs.filter(
+            (pl.col("km") >= MIN_KM)
+            & (pl.col("seconds") >= 0)
+            & ~pl.col("from_stop").cast(pl.String).is_in(stray)
+            & ~pl.col("to_stop").cast(pl.String).is_in(stray)
+        )
         .with_columns(
             kmh=pl.col("km") / pl.max_horizontal("seconds", MIN_SECONDS) * 3600
         )
@@ -31,6 +40,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         return ACQUITTED
     names = gtfs.stop_names()
     hops = speeding.unique(["from_stop", "to_stop"], keep="first", maintain_order=True)
+    trips = speeding["trip_id"].n_unique()
 
     def describe(row: dict[str, Any]) -> str:
         mode = mode_of(row["route_type"]).name
@@ -45,11 +55,15 @@ def judge(gtfs: Gtfs) -> Verdict | None:
 
     rows = hops.head(10).iter_rows(named=True)
     details = [describe(row) for row in rows]
+    summary = details[0]
+    if trips > 1:
+        summary = f"{trips:,} trips; {summary}"
     return Verdict(
         guilty=True,
-        summary=details[0],
-        metric=float(hops["kmh"][0]),
+        summary=summary,
+        metric=trips,
         details=details if speeding.height > 1 else [],
+        until=gtfs.until(speeding["trip_id"]),
     )
 
 

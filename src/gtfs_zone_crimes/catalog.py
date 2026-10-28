@@ -25,6 +25,8 @@ class CatalogFeed:
     since: str | None
     # Last service date from feed-catalog's content report, when it has one.
     service_end: str | None
+    # trips.txt rows from feed-catalog's content report, when it has one.
+    trips: int | None = None
     # First URL of each realtime role open without a key, for the viewer link.
     realtime_urls: dict[str, str] = field(default_factory=dict)
 
@@ -33,8 +35,8 @@ class CatalogFeed:
         """The best scheduled URL, the one that is downloaded and judged."""
         return self.scheduled_urls[0] if self.scheduled_urls else None
 
-    def summary(self) -> dict[str, Any]:
-        """What crimes.json says about the feed."""
+    def summary(self, trips: int | None = None) -> dict[str, Any]:
+        """What crimes.json says about the feed; `trips` is its trip count."""
         out: dict[str, Any] = {"name": self.name}
         if self.subtitle:
             out["subtitle"] = self.subtitle
@@ -44,6 +46,8 @@ class CatalogFeed:
             out["url"] = self.url
         if self.realtime_urls:
             out["realtime"] = self.realtime_urls
+        if trips:
+            out["trips"] = trips
         return out
 
 
@@ -68,6 +72,7 @@ def parse_feed(entry: dict[str, Any]) -> CatalogFeed:
         never_up=bool(entry.get("neverUp")),
         since=entry.get("since"),
         service_end=content.get("serviceEnd"),
+        trips=content.get("trips"),
         realtime_urls={
             role: urls[role][0]
             for role in REALTIME_ROLES

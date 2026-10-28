@@ -12,6 +12,7 @@ network.
 
 A stop within 1 km of 0,0, or a stop more than 2,000 km from the middle of the
 feed that would sit right next to it with latitude and longitude swapped back.
+Only stops served by a trip whose service still runs are judged.
 
 ## How to get pardoned
 

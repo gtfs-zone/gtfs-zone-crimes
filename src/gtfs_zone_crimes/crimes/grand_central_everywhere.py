@@ -1,6 +1,6 @@
 """Grand Central Everywhere: ordinary bus stops modelled as GTFS stations
 (location_type 1), each holding a pole or two. Coach services are left out:
-their stations are usually real ones."""
+their stations are usually real ones. Only trips that still run are judged."""
 
 import polars as pl
 
@@ -17,7 +17,7 @@ COACH_TRIP_KM = 100.0
 
 
 def local_bus_routes(gtfs: Gtfs) -> set[str]:
-    pairs = gtfs.pairs(timed=False)
+    pairs = gtfs.pairs(timed=False, active=True)
     if pairs is None:
         return set()
     buses = pairs.filter(pl.col("route_type").is_in(list(LOCAL_BUS)))
@@ -31,18 +31,17 @@ def local_bus_routes(gtfs: Gtfs) -> set[str]:
 
 
 def judge(gtfs: Gtfs) -> Verdict | None:
-    stops, sequence = gtfs.stops, gtfs.sequence
-    if stops is None or sequence is None:
+    stops, running = gtfs.stops, gtfs.running()
+    if stops is None or running is None:
         return None
     stations = stops.filter(pl.col("location_type") == 1)
     if stations.height < MIN_STATIONS:
         return ACQUITTED
     local = local_bus_routes(gtfs)
-    served = (
-        sequence.select(
-            pl.col("stop_id").cast(pl.String), pl.col("route_id").cast(pl.String)
-        )
+    served = gtfs.collect(
+        running.select("stop_id", "route_id")
         .unique()
+        .select(pl.col("stop_id").cast(pl.String), pl.col("route_id").cast(pl.String))
         .group_by("stop_id")
         .agg(only_local=pl.col("route_id").is_in(list(local)).all())
     )
@@ -68,6 +67,14 @@ def judge(gtfs: Gtfs) -> Verdict | None:
     share = dressed / bus_stops.height
     if inflated.height < MIN_STATIONS or share <= MIN_SHARE:
         return ACQUITTED
+    children = platforms.filter(
+        pl.col("parent_station").is_in(inflated["parent_station"].implode())
+    )["stop_id"]
+    trips = gtfs.collect(
+        running.filter(
+            pl.col("stop_id").cast(pl.String).is_in(children.implode())
+        ).select("trip_id")
+    )
     return Verdict(
         guilty=True,
         summary=(
@@ -81,6 +88,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
             .head(10)
             .iter_rows()
         ],
+        until=gtfs.until(trips["trip_id"]),
     )
 
 

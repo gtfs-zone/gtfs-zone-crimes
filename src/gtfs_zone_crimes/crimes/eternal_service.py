@@ -2,13 +2,13 @@
 never says when it stops being true."""
 
 from gtfs_zone_crimes.crime import ACQUITTED, CatalogCase, Crime, Scope, Verdict
-from gtfs_zone_crimes.crimes.expired import service_end
+from gtfs_zone_crimes.facts import service_end
 
 MAX_YEARS = 5
 
 
 def judge(case: CatalogCase) -> Verdict | None:
-    end = service_end(case)
+    end = service_end(case.feed, case.record)
     if end is None:
         return None
     years = (end - case.today).days / 365.25

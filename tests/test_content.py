@@ -31,6 +31,7 @@ def test_clean_feed_facts(judge_files):
         "datedRows": 1,
         "serviceStart": "2026-01-01",
         "serviceEnd": "2027-12-31",
+        "trips": 3,
     }
 
 
@@ -40,8 +41,34 @@ def test_supersonic_bus(judge_files):
     )
     verdict = judge_files({"stops.txt": stops})["supersonic"]
     assert guilty(verdict)
-    assert verdict.summary.startswith("Oak St Transit Center to Elm St & Park Rd")
+    assert verdict.summary.startswith("2 trips; Oak St Transit Center to Elm St")
     assert "bus" in verdict.summary
+    assert verdict.metric == 2
+    assert verdict.until == "2027-12-31"
+
+
+def test_supersonic_ignores_ended_service(judge_files):
+    stops = fixture_files()["stops.txt"].replace(
+        "45.5600,-122.6000", "46.5600,-122.6000"
+    )
+    # T1 and T2 speed, but their service ended; T3 still runs.
+    calendar = fixture_files()["calendar.txt"] + "OLD,1,1,1,1,1,0,0,20250101,20261001\n"
+    trips = fixture_files()["trips.txt"].replace(",WK,T1", ",OLD,T1")
+    trips = trips.replace(",WK,T2", ",OLD,T2")
+    files = {"stops.txt": stops, "calendar.txt": calendar, "trips.txt": trips}
+    assert not guilty(judge_files(files)["supersonic"])
+    # With no service left at all it cannot be judged.
+    ended = fixture_files()["calendar.txt"].replace("20271231", "20261001")
+    assert (
+        judge_files({"stops.txt": stops, "calendar.txt": ended})["supersonic"] is None
+    )
+
+
+def test_supersonic_leaves_null_island_alone(judge_files):
+    stops = fixture_files()["stops.txt"].replace("45.5600,-122.6000", "0.0,0.0")
+    verdicts = judge_files({"stops.txt": stops})
+    assert not guilty(verdicts["supersonic"])
+    assert guilty(verdicts["null-island"])
 
 
 def test_supersonic_gives_a_minute_of_rounding(judge_files):
@@ -93,6 +120,24 @@ def test_null_island(judge_files):
     assert verdict.summary == "1 stop(s) at 0,0"
 
 
+def test_null_island_ignores_stops_of_ended_service(judge_files):
+    stops = fixture_files()["stops.txt"].replace("45.5100,-122.6000", "0.0,0.0")
+    stops += "Z,Unused,0.0,0.0\n"
+    calendar = fixture_files()["calendar.txt"] + "OLD,1,1,1,1,1,0,0,20250101,20261001\n"
+    trips = fixture_files()["trips.txt"].replace("R1,WK,T2", "R1,OLD,T2")
+    times = fixture_files()["stop_times.txt"].replace("T1,08:03:00,08:03:00,B,2\n", "")
+    verdict = judge_files(
+        {
+            "stops.txt": stops,
+            "calendar.txt": calendar,
+            "trips.txt": trips,
+            "stop_times.txt": times,
+        }
+    )["null-island"]
+    # B is only served by T2, which has ended; Z by nothing.
+    assert not guilty(verdict)
+
+
 def test_null_island_swapped_coordinates(judge_files):
     stops = "\n".join(
         [
@@ -118,6 +163,18 @@ def test_time_travel(judge_files):
         "reaches Main St & 5th Ave 0:05:00 before leaving Main St & 1st Ave"
         in verdict.summary
     )
+
+
+def test_time_travel_ignores_ended_service(judge_files):
+    times = fixture_files()["stop_times.txt"].replace(
+        "T1,08:03:00,08:03:00", "T1,07:55:00,07:55:00"
+    )
+    calendar = fixture_files()["calendar.txt"] + "OLD,1,1,1,1,1,0,0,20250101,20261001\n"
+    trips = fixture_files()["trips.txt"].replace("R1,WK,T1", "R1,OLD,T1")
+    verdicts = judge_files(
+        {"stop_times.txt": times, "calendar.txt": calendar, "trips.txt": trips}
+    )
+    assert not guilty(verdicts["time-travel"])
 
 
 def test_time_travel_allows_overnight_times(judge_files):

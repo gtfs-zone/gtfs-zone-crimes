@@ -41,6 +41,8 @@ export interface FeedSummary {
   url?: string;
   /** First URL of each realtime role open without a key. */
   realtime?: Partial<Record<RealtimeRole, string>>;
+  /** trips.txt rows, which rank convictions by feed size. */
+  trips?: number;
 }
 
 export interface Attribution {

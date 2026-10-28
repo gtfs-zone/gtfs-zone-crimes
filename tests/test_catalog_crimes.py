@@ -5,7 +5,6 @@ from gtfs_zone_crimes.crimes import (
     disguised_as_html,
     eternal_service,
     every_day_is_special,
-    expired,
     groundhog_day,
 )
 from gtfs_zone_crimes.record import LogEntry, UrlRecord
@@ -36,13 +35,6 @@ def test_dead_link():
     assert not dead_link.judge(recent).guilty
     assert not dead_link.judge(case()).guilty
     assert dead_link.judge(case(scheduled_state="unknown")) is None
-
-
-def test_expired_prefers_the_judged_zip():
-    stale = record(facts={"serviceEnd": "2026-10-01"})
-    assert expired.judge(case(stale, service_end="2027-01-01")).metric == 25
-    assert not expired.judge(case(service_end="2027-01-01")).guilty
-    assert expired.judge(case()) is None
 
 
 def test_eternal_service():

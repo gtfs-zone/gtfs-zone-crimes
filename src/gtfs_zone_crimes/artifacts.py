@@ -4,10 +4,12 @@ web/src/data/crimes.ts."""
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any
 
+from gtfs_zone_crimes.facts import feed_trips, service_end
 from gtfs_zone_crimes.judge import judge_feed
 from gtfs_zone_crimes.registry import CRIMES
 
@@ -17,6 +19,14 @@ if TYPE_CHECKING:
 
 # Days a pardon stays on the Recently pardoned page.
 PARDON_DAYS = 90
+# Verdict fields kept in records.json but not published.
+UNPUBLISHED = {"guilty", "until"}
+
+
+def score(conviction: dict[str, Any], trips: int | None) -> float:
+    """How prominently a conviction is listed within its crime: the feed's size
+    times the offence's breadth, both on a log scale."""
+    return math.log1p(trips or 0) * math.log1p(conviction.get("metric") or 1)
 
 
 def build_crimes(
@@ -29,8 +39,15 @@ def build_crimes(
 ) -> dict[str, Any]:
     """Today's verdicts, with conviction dates carried forward from `previous`.
     A conviction that can no longer be judged (the download failed, the zip
-    was too big) stands as it was; one that is now acquitted becomes a pardon."""
+    was too big) stands as it was; one that is now acquitted becomes a pardon.
+    Feeds whose service has ended are left out altogether."""
     previous = previous or {}
+    feeds = [
+        feed
+        for feed in feeds
+        if (end := service_end(feed, records.get(feed.url or ""))) is None
+        or end >= today
+    ]
     before = {(c["crime"], c["feedId"]): c for c in previous.get("convictions", [])}
     before_by_feed: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for conviction in before.values():
@@ -51,7 +68,11 @@ def build_crimes(
                         "crime": slug,
                         "feedId": feed.id,
                         "since": old["since"] if old else today.isoformat(),
-                        **{k: v for k, v in verdict.to_json().items() if k != "guilty"},
+                        **{
+                            k: v
+                            for k, v in verdict.to_json().items()
+                            if k not in UNPUBLISHED
+                        },
                     }
                 )
             elif key in before:
@@ -74,11 +95,18 @@ def build_crimes(
         for p in previous.get("pardons", [])
         if p["pardoned"] >= cutoff
         and p["feedId"] in live
+        and p["crime"] in judged
         and (p["crime"], p["feedId"], p["pardoned"]) not in seen
     ]
     order = {crime.slug: i for i, crime in enumerate(CRIMES)}
+    trips = {feed.id: feed_trips(feed, records.get(feed.url or "")) for feed in feeds}
     convictions.sort(
-        key=lambda c: (order.get(c["crime"], 99), -(c.get("metric") or 0), c["feedId"])
+        key=lambda c: (
+            order.get(c["crime"], 99),
+            -score(c, trips.get(c["feedId"])),
+            -(c.get("metric") or 0),
+            c["feedId"],
+        )
     )
     pardons.sort(key=lambda p: (p["pardoned"], p["crime"], p["feedId"]), reverse=True)
     convicted: dict[str, int] = {crime.slug: 0 for crime in CRIMES}
@@ -99,7 +127,11 @@ def build_crimes(
         ],
         "convictions": convictions,
         "pardons": pardons,
-        "feeds": {fid: live[fid].summary() for fid in sorted(named) if fid in live},
+        "feeds": {
+            fid: live[fid].summary(trips.get(fid))
+            for fid in sorted(named)
+            if fid in live
+        },
     }
     if attribution is not None:
         out["attribution"] = attribution
