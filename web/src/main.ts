@@ -7,7 +7,10 @@ import {
   renderMoonIcon,
   renderSunIcon,
 } from 'gtfs-zone-web-common/ui/nav-icons';
-import { renderNavbarActions } from 'gtfs-zone-web-common/ui/navbar-actions';
+import {
+  githubAction,
+  renderNavbarActions,
+} from 'gtfs-zone-web-common/ui/navbar-actions';
 import { ThemeController } from 'gtfs-zone-web-common/ui/theme-controller';
 import { escapeHtml } from 'gtfs-zone-web-common/util/escape-html';
 import { CONFIG } from './config';
@@ -111,6 +114,7 @@ renderNavbarActions(document.getElementById('navbar-actions')!, [
     inputClass: 'theme-controller',
     value: 'light',
   },
+  githubAction('gtfs-zone-crimes'),
 ]);
 // Open the rightmost tooltip leftward so it does not overhang the viewport.
 document
