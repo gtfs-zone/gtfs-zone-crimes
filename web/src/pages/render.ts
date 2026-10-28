@@ -116,7 +116,7 @@ export function feedLinks(feedId: string, feed: FeedSummary): string {
 
 export function pageHeader(title: string, lede?: string): string {
   return (
-    `<h1 class="text-3xl font-bold">${escapeHtml(title)}</h1>` +
+    `<h1 class="text-3xl font-bold wrap-break-word">${escapeHtml(title)}</h1>` +
     (lede ? `<p class="mt-2 opacity-80 max-w-3xl">${escapeHtml(lede)}</p>` : '')
   );
 }
