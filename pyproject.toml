@@ -1,6 +1,6 @@
 [project]
 name = "gtfs-zone-crimes"
-version = "0.4.0"
+version = "0.5.0"
 requires-python = ">=3.13"
 description = "Crimes against the GTFS specification, checked daily for crimes.gtfs.zone"
 license = "AGPL-3.0-or-later"
