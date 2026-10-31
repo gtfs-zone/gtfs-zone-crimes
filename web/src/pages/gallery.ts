@@ -20,8 +20,8 @@ export function renderGallery(doc: CrimesDoc): string {
   const first = new Map(
     doc.convictions.map((c) => [`${c.crime}/${c.feedId}`, c] as const)
   );
-  const ranked = [...doc.crimes].sort((a, b) => b.convicted - a.convicted);
-  const cards = ranked.map((crime) => {
+  // doc.crimes is in the registry's hand-ranked order; do not re-sort it.
+  const cards = doc.crimes.map((crime) => {
     const writeUp = WRITE_UPS.get(crime.slug);
     const feedId = worst.get(crime.slug);
     const top = feedId ? first.get(`${crime.slug}/${feedId}`) : undefined;

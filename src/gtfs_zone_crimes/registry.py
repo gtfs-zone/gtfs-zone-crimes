@@ -1,4 +1,4 @@
-"""Every crime, in the order the site lists them when tied on convictions."""
+"""Every crime, in the order the site lists them."""
 
 from gtfs_zone_crimes.crime import Crime
 from gtfs_zone_crimes.crimes import (
@@ -21,22 +21,25 @@ from gtfs_zone_crimes.crimes import (
     zip_in_name_only,
 )
 
+# Ranked by hand, most notable first: clearly broken data at the top,
+# opinions and low-impact crimes at the bottom. The site keeps this order,
+# so place a new crime by notability rather than appending it.
 CRIMES: list[Crime] = [
+    time_travel.CRIME,
     supersonic.CRIME,
     api_key.CRIME,
-    beauty_queen.CRIME,
-    deja_vu.CRIME,
-    grand_central_everywhere.CRIME,
-    russian_doll.CRIME,
-    zip_in_name_only.CRIME,
-    data_only.CRIME,
-    groundhog_day.CRIME,
-    every_day_is_special.CRIME,
-    time_travel.CRIME,
-    invisible_ink.CRIME,
     null_island.CRIME,
-    shouting.CRIME,
+    deja_vu.CRIME,
+    invisible_ink.CRIME,
+    russian_doll.CRIME,
+    grand_central_everywhere.CRIME,
     eternal_service.CRIME,
+    every_day_is_special.CRIME,
+    beauty_queen.CRIME,
+    groundhog_day.CRIME,
+    zip_in_name_only.CRIME,
     disguised_as_html.CRIME,
+    data_only.CRIME,
+    shouting.CRIME,
     dead_link.CRIME,
 ]
