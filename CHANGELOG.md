@@ -1,3 +1,9 @@
+## v0.5.0 (2026-10-31)
+
+### Feat
+
+- list crimes in a hand-ranked order, most notable first
+
 ## v0.4.0 (2026-10-28)
 
 ### Feat
