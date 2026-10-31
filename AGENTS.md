@@ -42,6 +42,11 @@ scripts/check.sh               # what CI and the pre-commit hook run
   a delay, an honest User-Agent. Keep it that way.
 - **Links go out, never in.** The site links to list.gtfs.zone; no other
   gtfs.zone site is changed to link here.
+- **Pages are prerendered for crawlers.** The `prerender` plugin in
+  `vite.config.ts` writes `crime/<slug>/index.html`, `most-wanted/` and
+  `pardoned/` with their own head (from `web/src/seo.ts`) and a static body,
+  plus `sitemap.xml`; the app replaces `<main>` on load. nginx 404s unknown
+  paths and serves `/feed/<id>` with `X-Robots-Tag: noindex`.
 - The site's nginx serves `/data/crimes.json` only, never the bucket's
   `state/` prefix.
 
