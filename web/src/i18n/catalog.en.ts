@@ -6,6 +6,8 @@ export const en = {
   'nav.theme': 'Toggle theme',
 
   'home.title': 'Crimes against GTFS',
+  'home.description':
+    "An opinionated rap sheet of the world's GTFS feeds: buses at 600 km/h, zips that compress nothing, schedules behind API keys. Every public feed is put on trial daily.",
   'home.lede':
     'Things GTFS feeds do that are allowed, or nearly, and make everyone downstream suffer. Every feed in the public catalogs is put on trial daily; a feed that cleans up its act is pardoned automatically.',
   'home.onTrial': 'feeds on trial',

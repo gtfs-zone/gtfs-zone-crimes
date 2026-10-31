@@ -23,7 +23,7 @@ import { renderGallery } from './pages/gallery';
 import { renderMostWanted } from './pages/most-wanted';
 import { renderPardoned } from './pages/pardoned';
 import { renderRapSheet } from './pages/rap-sheet';
-import { crimeTitle } from './pages/render';
+import { documentTitle, pageMeta } from './seo';
 
 const page = document.getElementById('page')!;
 const footer = document.getElementById('footer')!;
@@ -44,26 +44,51 @@ function renderNav(path: string): void {
   ).join('');
 }
 
+/** Points the head at the page: title, description, canonical, robots. */
+function updateHead(path: string, feedName?: string): void {
+  const meta = pageMeta(path, WRITE_UPS);
+  document.title = documentTitle(feedName ?? meta.title);
+  document
+    .querySelector('meta[name="description"]')
+    ?.setAttribute('content', meta.description);
+  document
+    .querySelector('meta[property="og:title"]')
+    ?.setAttribute('content', documentTitle(meta.title));
+  document
+    .querySelector('meta[property="og:description"]')
+    ?.setAttribute('content', meta.description);
+  const canonical = document.querySelector('link[rel="canonical"]');
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  let robots = document.querySelector('meta[name="robots"]');
+  if (meta.canonical) {
+    canonical?.setAttribute('href', meta.canonical);
+    ogUrl?.setAttribute('content', meta.canonical);
+    robots?.remove();
+  } else if (!robots) {
+    robots = document.createElement('meta');
+    robots.setAttribute('name', 'robots');
+    robots.setAttribute('content', 'noindex');
+    document.head.append(robots);
+  }
+}
+
 function route(doc: CrimesDoc): void {
   const path = window.location.pathname;
   const [, section, id, extra] = path.split('/');
-  let title = t('home.title');
+  let feedName: string | undefined;
   if (section === 'crime' && id) {
     page.innerHTML = renderCrime(doc, id, extra === 'all');
-    title = crimeTitle(id);
   } else if (section === 'feed' && id) {
     page.innerHTML = renderRapSheet(doc, id);
-    title = doc.feeds[id]?.name ?? id;
+    feedName = doc.feeds[id]?.name ?? id;
   } else if (section === 'most-wanted') {
     page.innerHTML = renderMostWanted(doc);
-    title = t('wanted.title');
   } else if (section === 'pardoned') {
     page.innerHTML = renderPardoned(doc);
-    title = t('pardoned.title');
   } else {
     page.innerHTML = renderGallery(doc);
   }
-  document.title = `${title} - crimes.gtfs.zone`;
+  updateHead(path, feedName);
   renderNav(path);
   window.scrollTo(0, 0);
 }
