@@ -1,3 +1,9 @@
+## v0.6.0 (2026-10-31)
+
+### Feat
+
+- **seo**: prerender crime pages and publish a sitemap
+
 ## v0.5.0 (2026-10-31)
 
 ### Feat
