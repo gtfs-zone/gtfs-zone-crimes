@@ -22,6 +22,7 @@ check in `src/gtfs_zone_crimes/crimes/`.
 | Every day is special | calendars | No weekly calendar and over 5,000 calendar_dates rows |
 | Time travel | stop_times | A trip that arrives before it left, or leaves before it arrived |
 | Invisible ink | routes | Text on route colour below 1.5:1 contrast |
+| Le Cochon | all tables | 10% or more of the feed's bytes are rows nothing references (unused shapes, stops, trips, routes, services) |
 | Null Island | stops | A stop at 0,0, or with latitude and longitude swapped |
 | SHOUTING | stops, routes | Over half the stop or route long names in capitals |
 | Eternal service | calendars | Service ends more than 5 years from today |

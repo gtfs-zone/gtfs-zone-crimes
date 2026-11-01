@@ -10,6 +10,7 @@ CONTENT = [
     "time-travel",
     "shouting",
     "grand-central-everywhere",
+    "le-cochon",
 ]
 
 
@@ -307,3 +308,53 @@ def test_deja_vu_needs_shapes_to_differ_by_less_than_100_m(judge_files):
 
 def test_deja_vu_lets_a_few_copies_off(judge_files):
     assert not guilty(judge_files({"shapes.txt": shapes(500, 1e-8)})["deja-vu"])
+
+
+def orphan_shape(points: int) -> str:
+    rows = "".join(f"S9,45.6,-122.6,{i}\n" for i in range(points))
+    return fixture_files()["shapes.txt"] + rows
+
+
+def test_le_cochon_unused_shapes(judge_files):
+    verdict = judge_files({"shapes.txt": orphan_shape(400)})["le-cochon"]
+    assert guilty(verdict)
+    assert verdict.summary.startswith("About ")
+    assert "rows of shapes.txt" in verdict.summary
+
+
+def test_le_cochon_small_waste_is_acquitted(judge_files):
+    verdict = judge_files({"shapes.txt": orphan_shape(5)})["le-cochon"]
+    assert verdict == Verdict(guilty=False)
+
+
+def test_le_cochon_unused_stops(judge_files):
+    rows = "".join(f"X{i},Nowhere {i},45.7,-122.7\n" for i in range(150))
+    stops = fixture_files()["stops.txt"] + rows
+    verdict = judge_files({"stops.txt": stops})["le-cochon"]
+    assert guilty(verdict)
+    assert "150 rows of stops.txt" in verdict.summary
+
+
+def test_le_cochon_station_of_served_stop_is_used(judge_files):
+    stops = (
+        "stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station\n"
+        "A,Main St & 1st Ave,45.5000,-122.6000,0,P\n"
+        "B,Main St & 5th Ave,45.5100,-122.6000,0,\n"
+        "C,Oak St Transit Center,45.5300,-122.6000,0,\n"
+        "D,Elm St & Park Rd,45.5600,-122.6000,0,\n"
+        "P,Main St Station,45.5000,-122.6000,1,\n"
+        "E,Main St Entrance,45.5000,-122.6000,2,P\n"
+    )
+    verdict = judge_files({"stops.txt": stops})["le-cochon"]
+    assert verdict == Verdict(guilty=False)
+
+
+def test_le_cochon_expired_service_is_not_unused(judge_files):
+    calendar = fixture_files()["calendar.txt"].replace("20271231", "20250101")
+    verdict = judge_files({"calendar.txt": calendar})["le-cochon"]
+    assert verdict == Verdict(guilty=False)
+
+
+def test_le_cochon_without_stop_times(judge_files):
+    verdict = judge_files({"stop_times.txt": ""})["le-cochon"]
+    assert verdict is None
