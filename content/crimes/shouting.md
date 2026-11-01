@@ -1,6 +1,6 @@
 ---
 title: SHOUTING
-tagline: MAIN ST & 5TH AVE NB FS.
+tagline: SO EASY TO READ RIGHT?
 ---
 
 Stop names are read by passengers, on screens and out loud by text to speech.
