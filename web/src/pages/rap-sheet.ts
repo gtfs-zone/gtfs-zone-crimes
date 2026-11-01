@@ -30,7 +30,7 @@ export function renderRapSheet(doc: CrimesDoc, feedId: string): string {
             <a href="/crime/${c.crime}" class="card-title link link-hover">${escapeHtml(crimeTitle(c.crime))}</a>
             <span class="text-xs opacity-60">${t('crime.since', { date: day(c.since) })}</span>
           </div>
-          ${evidence(c, true)}
+          ${evidence(c, doc.feeds[c.feedId], true)}
         </div>
       </div>`
     )

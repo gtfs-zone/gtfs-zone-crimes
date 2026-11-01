@@ -4,7 +4,7 @@ their stations are usually real ones. Only trips that still run are judged."""
 
 import polars as pl
 
-from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict, linked
 from gtfs_zone_crimes.modes import LOCAL_BUS
 from gtfs_zone_crimes.parse import Gtfs
 
@@ -75,19 +75,18 @@ def judge(gtfs: Gtfs) -> Verdict | None:
             pl.col("stop_id").cast(pl.String).is_in(children.implode())
         ).select("trip_id")
     )
-    return Verdict(
-        guilty=True,
+    return Verdict.lines(
+        [
+            linked(("stop", sid, name or sid))
+            for sid, name in inflated.select("parent_station", "stop_name")
+            .head(10)
+            .iter_rows()
+        ],
         summary=(
             f"{inflated.height:,} bus stops dressed up as stations "
             f"({share:.0%} of bus stops)"
         ),
         metric=inflated.height,
-        details=[
-            name or sid
-            for sid, name in inflated.select("parent_station", "stop_name")
-            .head(10)
-            .iter_rows()
-        ],
         until=gtfs.until(trips["trip_id"]),
     )
 

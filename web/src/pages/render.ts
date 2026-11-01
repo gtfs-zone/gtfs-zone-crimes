@@ -2,7 +2,7 @@
 import { formatDate, formatNumber } from 'gtfs-zone-web-common/i18n/fmt';
 import { escapeHtml } from 'gtfs-zone-web-common/util/escape-html';
 import { CONFIG } from '../config';
-import type { Conviction, CrimesDoc, FeedSummary } from '../data/crimes';
+import type { Conviction, CrimesDoc, FeedSummary, Ref } from '../data/crimes';
 import { WRITE_UPS } from '../data/write-ups';
 import { t } from '../i18n/messages';
 
@@ -45,17 +45,40 @@ export function crimeBadge(slug: string): string {
   return `<a href="/crime/${slug}" class="badge badge-error badge-outline badge-sm whitespace-nowrap">${escapeHtml(crimeTitle(slug))}</a>`;
 }
 
-export function evidence(conviction: Conviction, open = false): string {
+export function evidence(
+  conviction: Conviction,
+  feed: FeedSummary | undefined,
+  open = false
+): string {
   const summary = escapeHtml(conviction.summary ?? '');
-  const details = (conviction.details ?? []).filter(
-    (line) => line !== conviction.summary
-  );
+  const editor = feed ? editorUrl(feed) : null;
+  const details = (conviction.details ?? [])
+    .map((line, i) => ({ line, refs: conviction.refs?.[i] ?? [] }))
+    .filter(({ line }) => line !== conviction.summary);
   if (!details.length) {
     return `<span class="wrap-anywhere">${summary}</span>`;
   }
   return `<details${open ? ' open' : ''} class="wrap-anywhere"><summary class="cursor-pointer">${summary}</summary><ul class="list-disc list-inside text-sm opacity-80 mt-1">${details
-    .map((line) => `<li>${escapeHtml(line)}</li>`)
+    .map(({ line, refs }) => `<li>${linkRefs(line, refs, editor)}</li>`)
     .join('')}</ul></details>`;
+}
+
+/** The line escaped, each ref's text linking to its page in the editor. */
+function linkRefs(line: string, refs: Ref[], editor: string | null): string {
+  let html = '';
+  let at = 0;
+  for (const ref of refs) {
+    const end = ref.at + ref.text.length;
+    if (!editor || ref.at < at || line.slice(ref.at, end) !== ref.text) {
+      continue;
+    }
+    const href = `${editor}&${ref.type}=${encodeURIComponent(ref.id)}`;
+    html +=
+      escapeHtml(line.slice(at, ref.at)) +
+      `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="link link-hover">${escapeHtml(ref.text)}</a>`;
+    at = end;
+  }
+  return html + escapeHtml(line.slice(at));
 }
 
 export function listUrl(feedId: string): string {

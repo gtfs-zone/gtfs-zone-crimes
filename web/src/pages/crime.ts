@@ -23,7 +23,7 @@ export function renderCrime(
          <div class="card-body">
            <div class="text-xs uppercase text-error font-semibold">${t('crime.featured')}</div>
            <div>${feedCell(doc, featured.feedId)}</div>
-           <div>${evidence(featured, true)}</div>
+           <div>${evidence(featured, doc.feeds[featured.feedId], true)}</div>
          </div>
        </div>`
     : '';
@@ -32,7 +32,7 @@ export function renderCrime(
     .map(
       (c) => `<tr>
         <td>${feedCell(doc, c.feedId)}</td>
-        <td>${evidence(c)}</td>
+        <td>${evidence(c, doc.feeds[c.feedId])}</td>
         <td class="whitespace-nowrap text-sm">${day(c.since)}</td>
       </tr>`
     )
