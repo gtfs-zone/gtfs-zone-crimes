@@ -1,3 +1,9 @@
+## v0.8.0 (2026-11-01)
+
+### Feat
+
+- **evidence**: link stops and routes to edit.gtfs.zone
+
 ## v0.7.0 (2026-11-01)
 
 ### Feat
