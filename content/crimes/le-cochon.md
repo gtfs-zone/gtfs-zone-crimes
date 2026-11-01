@@ -1,6 +1,6 @@
 ---
 title: Le Cochon
-tagline: Carrying weight nothing uses.
+tagline: What Alstom and Bombardier called the og Acela and what I call your feed
 featured: f-e8b702f5e5
 ---
 
