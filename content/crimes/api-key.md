@@ -1,6 +1,6 @@
 ---
 title: Feed requires an API key
-tagline: A zip file behind a login.
+tagline: A great example of unnecessary government bureaucracy.
 ---
 
 A static GTFS feed is a zip file. It changes a few times a month. Serving it to
