@@ -1,3 +1,9 @@
+## v0.8.1 (2026-11-01)
+
+### Fix
+
+- **content**: new taglines for le-cochon and shouting
+
 ## v0.8.0 (2026-11-01)
 
 ### Feat
