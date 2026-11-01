@@ -1,11 +1,15 @@
 """Time travel: trips that arrive before they leave. Times past 24:00 or even
-48:00 are fine (overnight trains have them); going backwards is not. Only
-trips that still run are judged."""
+48:00 are fine (overnight trains have them); going backwards is not. A rewind of 22 h or
+more is marked as a likely time past midnight written from 00:00. Only trips
+that still run are judged."""
 
 import polars as pl
 
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
 from gtfs_zone_crimes.parse import Gtfs
+
+OVERNIGHT = 22 * 3600
+MIDNIGHT = " (likely a time past midnight written from 00:00 instead of 24:00)"
 
 
 def clock(value: int) -> str:
@@ -43,6 +47,8 @@ def judge(gtfs: Gtfs) -> Verdict | None:
                 f"leaves {names.get(row['to_stop'], row['to_stop'])} "
                 f"{clock(-row['dwell'])} before arriving"
             )
+        if -row["rewind"] >= OVERNIGHT:
+            what += MIDNIGHT
         details.append(
             f"Trip {row['trip_id']} ({gtfs.route_label(row['route_id'])}) {what}"
         )

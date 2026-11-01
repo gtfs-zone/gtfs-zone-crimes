@@ -163,6 +163,26 @@ def test_time_travel(judge_files):
         "reaches Main St & 5th Ave 0:05:00 before leaving Main St & 1st Ave"
         in verdict.summary
     )
+    assert "past midnight" not in verdict.summary
+
+
+def test_time_travel_marks_midnight_mistakes(judge_files):
+    times = fixture_files()["stop_times.txt"].replace(
+        "T2,25:05:00,25:06:00", "T2,01:05:00,01:06:00"
+    )
+    verdict = judge_files({"stop_times.txt": times})["time-travel"]
+    assert guilty(verdict)
+    assert "before leaving" in verdict.summary
+    assert "likely a time past midnight" in verdict.summary
+
+
+def test_time_travel_marks_midnight_dwell(judge_files):
+    times = fixture_files()["stop_times.txt"].replace(
+        "T2,25:05:00,25:06:00", "T2,25:05:00,01:06:00"
+    )
+    verdict = judge_files({"stop_times.txt": times})["time-travel"]
+    assert "before arriving" in verdict.summary
+    assert "likely a time past midnight" in verdict.summary
 
 
 def test_time_travel_ignores_ended_service(judge_files):
