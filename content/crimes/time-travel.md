@@ -16,6 +16,9 @@ or a stop's departure is earlier than its own arrival.
 Times past 24:00:00 are fine, and so are times past 48:00:00: Amtrak's long
 distance trains legitimately run that long.
 
+A rewind of 22 hours or more is marked in the evidence as a likely time past
+midnight written from 00:00. It is still time travel.
+
 Only trips whose service still runs are judged.
 
 ## How to get pardoned
