@@ -22,6 +22,17 @@ export interface Conviction {
   /** Ranks convictions of one crime; larger is worse. */
   metric?: number;
   details?: string[];
+  /** `refs[i]` are the objects named in `details[i]`. */
+  refs?: Ref[][];
+}
+
+/** An object a detail line names, at UTF-16 offset `at`. */
+export interface Ref {
+  /** The editor page the object opens on. */
+  type: 'stop' | 'route';
+  id: string;
+  at: number;
+  text: string;
 }
 
 export interface Pardon {

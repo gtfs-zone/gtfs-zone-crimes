@@ -10,7 +10,7 @@ from typing import Any
 
 import polars as pl
 
-from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crime import ACQUITTED, Crime, Part, Ref, Scope, Verdict, linked
 from gtfs_zone_crimes.crimes.null_island import stray_stops
 from gtfs_zone_crimes.modes import limit_expr, mode_of
 from gtfs_zone_crimes.parse import Gtfs
@@ -59,35 +59,38 @@ def judge(gtfs: Gtfs) -> Verdict | None:
     hops = speeding.unique(["from_stop", "to_stop"], keep="first", maintain_order=True)
     trips = speeding["trip_id"].n_unique()
 
-    def describe(row: dict[str, Any]) -> str:
+    def stop(stop_id: str) -> Part:
+        return ("stop", stop_id, names.get(stop_id, stop_id))
+
+    def describe(row: dict[str, Any]) -> tuple[str, list[Ref]]:
         mode = mode_of(row["route_type"]).name
-        start = names.get(row["from_stop"], row["from_stop"])
-        end = names.get(row["to_stop"], row["to_stop"])
-        where = f"{start} to {end}"
         minutes = row["seconds"] / 60
-        text = (
-            f"{where}: {row['km']:,.0f} km in {minutes:,.0f} min "
-            f"({row['kmh']:,.0f} km/h, {mode}, {gtfs.route_label(row['route_id'])})"
-        )
-        suspects = [
-            names.get(stop, stop)
-            for stop in (row["from_stop"], row["to_stop"])
-            if stop in misplaced
+        parts: list[Part] = [
+            stop(row["from_stop"]),
+            " to ",
+            stop(row["to_stop"]),
+            f": {row['km']:,.0f} km in {minutes:,.0f} min "
+            f"({row['kmh']:,.0f} km/h, {mode}, ",
+            ("route", row["route_id"], gtfs.route_label(row["route_id"])),
+            ")",
         ]
+        suspects = [s for s in (row["from_stop"], row["to_stop"]) if s in misplaced]
         if suspects:
-            text += f" (likely misplaced stop: {', '.join(suspects)})"
-        return text
+            parts.append(" (likely misplaced stop: ")
+            for i, suspect in enumerate(suspects):
+                parts += [", "] * bool(i) + [stop(suspect)]
+            parts.append(")")
+        return linked(*parts)
 
     rows = hops.head(10).iter_rows(named=True)
     details = [describe(row) for row in rows]
-    summary = details[0]
+    summary = details[0][0]
     if trips > 1:
         summary = f"{trips:,} trips; {summary}"
-    return Verdict(
-        guilty=True,
+    return Verdict.lines(
+        details if speeding.height > 1 else [],
         summary=summary,
         metric=trips,
-        details=details if speeding.height > 1 else [],
         until=gtfs.until(speeding["trip_id"]),
     )
 

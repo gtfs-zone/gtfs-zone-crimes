@@ -25,13 +25,23 @@ class Scope(StrEnum):
     CONTENT = "content"
 
 
-# An object a detail line names: its editor page (`stop`, `route`), its id and
-# the text in the line that links to it.
-Ref = dict[str, str]
+# An object a detail line names: its editor page (`stop`, `route`), its id,
+# and the text that links to it, starting at UTF-16 offset `at` as JS counts.
+Ref = dict[str, str | int]
+Part = str | tuple[str, object, str]
 
 
-def ref(kind: str, object_id: object, text: str) -> Ref:
-    return {"type": kind, "id": str(object_id), "text": text}
+def linked(*parts: Part) -> tuple[str, list[Ref]]:
+    """A detail line and its refs from plain text and (type, id, text) parts.
+    A part with a null id stays plain text."""
+    line, refs, at = "", [], 0
+    for part in parts:
+        text = part if isinstance(part, str) else part[2]
+        if not isinstance(part, str) and part[1] is not None:
+            refs.append({"type": part[0], "id": str(part[1]), "at": at, "text": text})
+        line += text
+        at += len(text.encode("utf-16-le")) // 2
+    return line, refs
 
 
 @dataclass(frozen=True)
@@ -39,8 +49,7 @@ class Verdict:
     """The outcome of one crime for one feed. `metric` ranks convictions,
     larger is worse; `summary` is the one line the site shows; `until` is the
     last date (ISO) the offending service runs, after which it is pardoned.
-    `refs[i]` names the objects in `details[i]` the site links to the editor,
-    in the order their text appears in the line."""
+    `refs[i]` names the objects in `details[i]` the site links to the editor."""
 
     guilty: bool
     summary: str = ""
@@ -48,6 +57,24 @@ class Verdict:
     details: list[str] = field(default_factory=list)
     until: str | None = None
     refs: list[list[Ref]] = field(default_factory=list)
+
+    @classmethod
+    def lines(
+        cls,
+        lines: list[tuple[str, list[Ref]]],
+        summary: str,
+        metric: float,
+        until: str | None = None,
+    ) -> Verdict:
+        """A guilty verdict whose details come from `linked`."""
+        return cls(
+            guilty=True,
+            summary=summary,
+            metric=metric,
+            details=[text for text, _ in lines],
+            until=until,
+            refs=[refs for _, refs in lines],
+        )
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {"guilty": self.guilty}

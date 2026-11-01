@@ -3,7 +3,7 @@ because they are the same colour."""
 
 import re
 
-from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crime import ACQUITTED, Crime, Ref, Scope, Verdict, linked
 from gtfs_zone_crimes.parse import Gtfs
 
 MIN_CONTRAST = 1.5
@@ -28,7 +28,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
     routes = gtfs.routes
     if routes is None:
         return None
-    offenders: list[tuple[float, str]] = []
+    offenders: list[tuple[float, str, list[Ref]]] = []
     for row in routes.iter_rows(named=True):
         color, text = row["route_color"], row["route_text_color"]
         if not (color and text and HEX.match(color) and HEX.match(text)):
@@ -36,17 +36,18 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         ratio = contrast(color, text)
         if ratio < MIN_CONTRAST:
             label = row["route_short_name"] or row["route_long_name"] or row["route_id"]
-            offenders.append(
-                (ratio, f"{label}: #{text.upper()} on #{color.upper()} ({ratio:.2f}:1)")
+            line = linked(
+                ("route", row["route_id"], label),
+                f": #{text.upper()} on #{color.upper()} ({ratio:.2f}:1)",
             )
+            offenders.append((ratio, *line))
     if not offenders:
         return ACQUITTED
-    offenders.sort()
-    return Verdict(
-        guilty=True,
+    offenders.sort(key=lambda offender: offender[:2])
+    return Verdict.lines(
+        [(text, refs) for _, text, refs in offenders[:10]],
         summary=f"{len(offenders)} route(s) unreadable: {offenders[0][1]}",
         metric=len(offenders),
-        details=[text for _, text in offenders[:10]],
     )
 
 

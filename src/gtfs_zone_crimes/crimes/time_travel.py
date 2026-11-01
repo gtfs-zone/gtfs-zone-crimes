@@ -5,7 +5,7 @@ that still run are judged."""
 
 import polars as pl
 
-from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crime import ACQUITTED, Crime, Part, Scope, Verdict, linked
 from gtfs_zone_crimes.parse import Gtfs
 
 OVERNIGHT = 22 * 3600
@@ -36,27 +36,29 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         .head(10)
         .iter_rows(named=True)
     ):
-        if row["seconds"] < 0:
-            what = (
-                f"reaches {names.get(row['to_stop'], row['to_stop'])} "
-                f"{clock(-row['seconds'])} before leaving "
-                f"{names.get(row['from_stop'], row['from_stop'])}"
-            )
-        else:
-            what = (
-                f"leaves {names.get(row['to_stop'], row['to_stop'])} "
-                f"{clock(-row['dwell'])} before arriving"
-            )
-        if -row["rewind"] >= OVERNIGHT:
-            what += MIDNIGHT
-        details.append(
-            f"Trip {row['trip_id']} ({gtfs.route_label(row['route_id'])}) {what}"
+        to_stop: Part = (
+            "stop",
+            row["to_stop"],
+            names.get(row["to_stop"], row["to_stop"]),
         )
-    return Verdict(
-        guilty=True,
-        summary=f"{trips:,} trip(s) go back in time; {details[0]}",
+        if row["seconds"] < 0:
+            from_stop = names.get(row["from_stop"], row["from_stop"])
+            what: list[Part] = [
+                "reaches ",
+                to_stop,
+                f" {clock(-row['seconds'])} before leaving ",
+                ("stop", row["from_stop"], from_stop),
+            ]
+        else:
+            what = ["leaves ", to_stop, f" {clock(-row['dwell'])} before arriving"]
+        if -row["rewind"] >= OVERNIGHT:
+            what.append(MIDNIGHT)
+        route = ("route", row["route_id"], gtfs.route_label(row["route_id"]))
+        details.append(linked(f"Trip {row['trip_id']} (", route, ") ", *what))
+    return Verdict.lines(
+        details,
+        summary=f"{trips:,} trip(s) go back in time; {details[0][0]}",
         metric=trips,
-        details=details,
         until=gtfs.until(backwards["trip_id"]),
     )
 

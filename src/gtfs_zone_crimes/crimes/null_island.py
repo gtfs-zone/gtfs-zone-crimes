@@ -4,7 +4,7 @@ served by a trip that still runs are judged."""
 
 import polars as pl
 
-from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
+from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict, linked
 from gtfs_zone_crimes.parse import Gtfs, haversine_km
 
 NULL_KM = 1.0
@@ -46,7 +46,10 @@ def judge(gtfs: Gtfs) -> Verdict | None:
     if swaps:
         counts.append(f"{swaps} stop(s) with latitude and longitude swapped")
     details = [
-        f"{row['stop_name'] or row['stop_id']} ({row['stop_lat']}, {row['stop_lon']})"
+        linked(
+            ("stop", row["stop_id"], row["stop_name"] or row["stop_id"]),
+            f" ({row['stop_lat']}, {row['stop_lon']})",
+        )
         for row in flagged.head(10).iter_rows(named=True)
     ]
     trips = gtfs.collect(
@@ -54,11 +57,10 @@ def judge(gtfs: Gtfs) -> Verdict | None:
             pl.col("stop_id").cast(pl.String).is_in(flagged["stop_id"].implode())
         ).select("trip_id")
     )
-    return Verdict(
-        guilty=True,
+    return Verdict.lines(
+        details,
         summary="; ".join(counts),
         metric=flagged.height,
-        details=details,
         until=gtfs.until(trips["trip_id"]),
     )
 
