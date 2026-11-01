@@ -25,17 +25,29 @@ class Scope(StrEnum):
     CONTENT = "content"
 
 
+# An object a detail line names: its editor page (`stop`, `route`), its id and
+# the text in the line that links to it.
+Ref = dict[str, str]
+
+
+def ref(kind: str, object_id: object, text: str) -> Ref:
+    return {"type": kind, "id": str(object_id), "text": text}
+
+
 @dataclass(frozen=True)
 class Verdict:
     """The outcome of one crime for one feed. `metric` ranks convictions,
     larger is worse; `summary` is the one line the site shows; `until` is the
-    last date (ISO) the offending service runs, after which it is pardoned."""
+    last date (ISO) the offending service runs, after which it is pardoned.
+    `refs[i]` names the objects in `details[i]` the site links to the editor,
+    in the order their text appears in the line."""
 
     guilty: bool
     summary: str = ""
     metric: float | None = None
     details: list[str] = field(default_factory=list)
     until: str | None = None
+    refs: list[list[Ref]] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {"guilty": self.guilty}
@@ -47,6 +59,8 @@ class Verdict:
             out["details"] = self.details
         if self.until:
             out["until"] = self.until
+        if any(self.refs):
+            out["refs"] = self.refs
         return out
 
     @classmethod
@@ -57,6 +71,7 @@ class Verdict:
             metric=data.get("metric"),
             details=data.get("details", []),
             until=data.get("until"),
+            refs=data.get("refs", []),
         )
 
 

@@ -1,3 +1,11 @@
+## v0.7.0 (2026-11-01)
+
+### Feat
+
+- **le-cochon**: convict feeds where 10% or more of the bytes are unreferenced rows
+- **supersonic**: mark stops reached and left at similar speeds as likely misplaced
+- **time-travel**: mark 22h+ rewinds as likely midnight mistakes
+
 ## v0.6.0 (2026-10-31)
 
 ### Feat
