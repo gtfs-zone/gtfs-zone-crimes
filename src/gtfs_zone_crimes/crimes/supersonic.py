@@ -3,7 +3,8 @@ can go. A bus at 600 km/h, a ferry at 300, or anything at the speed of sound.
 Times are often rounded to the minute, so a hop is given at least a minute
 and hops under 2 km are ignored. Only trips that still run are judged, and
 hops to or from a stop at 0,0 or with swapped coordinates are left to Null
-Island."""
+Island. A stop reached and left at impossible speeds within 2x of each other
+is marked as likely misplaced."""
 
 from typing import Any
 
@@ -16,6 +17,21 @@ from gtfs_zone_crimes.parse import Gtfs
 
 MIN_KM = 2.0
 MIN_SECONDS = 60
+SIMILAR = 2.0
+
+
+def misplaced_stops(timed: pl.DataFrame) -> set[str]:
+    """Stops reached by one fast hop and left by the next at a similar speed:
+    the trip went out to the stop and came back."""
+    nxt = pl.col("kmh").shift(-1)
+    out = timed.filter(
+        (pl.col("trip_id").shift(-1) == pl.col("trip_id"))
+        & (pl.col("from_stop").shift(-1) == pl.col("to_stop"))
+        & pl.col("fast")
+        & pl.col("fast").shift(-1)
+        & (pl.max_horizontal("kmh", nxt) <= SIMILAR * pl.min_horizontal("kmh", nxt))
+    )
+    return set(out["to_stop"].cast(pl.String).to_list())
 
 
 def judge(gtfs: Gtfs) -> Verdict | None:
@@ -23,7 +39,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
     if pairs is None or gtfs.stops is None:
         return None
     stray = stray_stops(gtfs.stops)["stop_id"].implode()
-    speeding = (
+    timed = (
         pairs.filter(
             (pl.col("km") >= MIN_KM)
             & (pl.col("seconds") >= 0)
@@ -33,9 +49,10 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         .with_columns(
             kmh=pl.col("km") / pl.max_horizontal("seconds", MIN_SECONDS) * 3600
         )
-        .filter(pl.col("kmh") > limit_expr())
-        .sort("kmh", descending=True)
+        .with_columns(fast=pl.col("kmh") > limit_expr())
     )
+    speeding = timed.filter("fast").sort("kmh", descending=True)
+    misplaced = misplaced_stops(timed)
     if speeding.is_empty():
         return ACQUITTED
     names = gtfs.stop_names()
@@ -48,10 +65,18 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         end = names.get(row["to_stop"], row["to_stop"])
         where = f"{start} to {end}"
         minutes = row["seconds"] / 60
-        return (
+        text = (
             f"{where}: {row['km']:,.0f} km in {minutes:,.0f} min "
             f"({row['kmh']:,.0f} km/h, {mode}, {gtfs.route_label(row['route_id'])})"
         )
+        suspects = [
+            names.get(stop, stop)
+            for stop in (row["from_stop"], row["to_stop"])
+            if stop in misplaced
+        ]
+        if suspects:
+            text += f" (likely misplaced stop: {', '.join(suspects)})"
+        return text
 
     rows = hops.head(10).iter_rows(named=True)
     details = [describe(row) for row in rows]

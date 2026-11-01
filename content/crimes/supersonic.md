@@ -1,6 +1,6 @@
 ---
 title: Ultra high speed service
-tagline: Buses that outrun airliners.
+tagline: The New Flyer is ready for takeoff.
 featured: f-2f033a022e
 ---
 
@@ -31,6 +31,11 @@ a minute, and hops shorter than 2 km are never counted.
 
 Only trips whose service still runs are judged. A hop to or from a stop at 0,0,
 or with its latitude and longitude swapped, is left to Null Island.
+
+When a trip reaches a stop at an impossible speed and leaves it at a similar
+one (within a factor of two), the evidence marks that stop as likely
+misplaced: the trip seems to go out to it and come straight back. It is a
+guess, not a finding.
 
 ## How to get pardoned
 

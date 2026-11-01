@@ -45,6 +45,17 @@ def test_supersonic_bus(judge_files):
     assert "bus" in verdict.summary
     assert verdict.metric == 2
     assert verdict.until == "2027-12-31"
+    # D is only ever a last stop, so nothing comes back from it.
+    assert "misplaced" not in " ".join([verdict.summary, *verdict.details])
+
+
+def test_supersonic_marks_misplaced_stop(judge_files):
+    stops = fixture_files()["stops.txt"].replace(
+        "45.5100,-122.6000", "46.5100,-122.6000"
+    )
+    verdict = judge_files({"stops.txt": stops})["supersonic"]
+    assert guilty(verdict)
+    assert "(likely misplaced stop: Main St & 5th Ave)" in verdict.summary
 
 
 def test_supersonic_ignores_ended_service(judge_files):
