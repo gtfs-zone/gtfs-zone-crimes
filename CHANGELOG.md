@@ -1,3 +1,9 @@
+## v0.10.0 (2026-11-05)
+
+### Feat
+
+- **supersonic**: speed limits keyed on gtfs-zone-vocab route type families
+
 ## v0.9.0 (2026-11-05)
 
 ### Feat
