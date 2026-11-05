@@ -19,12 +19,12 @@ everything its mode can do:
 
 | Mode | Limit |
 |---|---|
-| Bus, trolleybus, coach | 250 km/h |
-| Tram, metro, monorail | 200 km/h |
+| Bus, trolleybus, coach, taxi | 250 km/h |
+| Tram, metro (monorail included) | 200 km/h |
 | Rail | 450 km/h, above any scheduled high speed average |
 | Ferry | 150 km/h |
-| Cable car, gondola, funicular | 100 km/h |
-| Anything else, air included | 1,235 km/h, the speed of sound |
+| Cable transport (cable car, gondola), funicular | 100 km/h |
+| Air, miscellaneous, or no known mode | 1,235 km/h, the speed of sound |
 
 Times in GTFS are usually rounded to the minute, so every hop is given at least
 a minute, and hops shorter than 2 km are never counted.

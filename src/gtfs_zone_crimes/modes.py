@@ -1,57 +1,48 @@
-"""Route types (the spec's and the extended Hierarchical Vehicle Types) grouped
-into modes, each with the speed nothing in that mode reaches on a schedule."""
+"""Speed limits per route type family (from gtfs-zone-vocab): the speed nothing
+in that family reaches on a schedule."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import polars as pl
+from gtfs_zone_vocab.route_types import ROUTE_TYPES, route_type_family
 
-
-@dataclass(frozen=True)
-class Mode:
-    name: str
-    # km/h between two stops that no scheduled vehicle of this mode reaches.
-    limit_kmh: float
-    route_types: frozenset[int]
-
-
-def span(start: int, stop: int) -> set[int]:
-    return set(range(start, stop + 1))
-
-
-# Speed of sound: the limit for air and for anything without a known mode.
+# Speed of sound: the limit for air, misc and anything without a known family.
 SUPERSONIC_KMH = 1235.0
 
-MODES = [
-    Mode("tram", 200.0, frozenset({0} | span(900, 999))),
-    Mode("metro", 200.0, frozenset({1, 12} | span(400, 499))),
-    Mode("rail", 450.0, frozenset({2} | span(100, 199) | span(300, 399))),
-    Mode("bus", 250.0, frozenset({3, 11} | span(700, 899) | span(1500, 1599))),
-    Mode("coach", 250.0, frozenset(span(200, 299))),
-    Mode("ferry", 150.0, frozenset({4} | span(1000, 1099) | span(1200, 1299))),
-    Mode("cable", 100.0, frozenset({5, 6, 7} | span(1300, 1499))),
-]
-UNKNOWN = Mode("unknown mode", SUPERSONIC_KMH, frozenset())
+# km/h between two stops that no scheduled vehicle of the family reaches;
+# families not listed get SUPERSONIC_KMH.
+LIMIT_BY_FAMILY = {
+    "tram": 200.0,
+    "metro": 200.0,
+    "rail": 450.0,
+    "coach": 250.0,
+    "bus": 250.0,
+    "trolleybus": 250.0,
+    "taxi": 250.0,
+    "ferry": 150.0,
+    "cable": 100.0,
+    "funicular": 100.0,
+}
 
 # Route types that serve bus stops on the street.
-LOCAL_BUS = frozenset({3, 11} | span(700, 899))
+LOCAL_BUS = frozenset(
+    rt.code for rt in ROUTE_TYPES if rt.family in ("bus", "trolleybus")
+)
+
+# Limit per known route_type code.
+_LIMIT_BY_CODE = {
+    rt.code: LIMIT_BY_FAMILY.get(rt.family, SUPERSONIC_KMH) for rt in ROUTE_TYPES
+}
 
 
-def mode_of(route_type: int | None) -> Mode:
-    for mode in MODES:
-        if route_type in mode.route_types:
-            return mode
-    return UNKNOWN
+def mode_name(route_type: int | None) -> str:
+    """The family slug of a route type, or "unknown mode"."""
+    family = route_type_family(route_type) if route_type is not None else None
+    return family or "unknown mode"
 
 
 def limit_expr(column: str = "route_type") -> pl.Expr:
-    """The mode's speed limit for each row's route type."""
-    expr = pl.lit(SUPERSONIC_KMH)
-    for mode in reversed(MODES):
-        expr = (
-            pl.when(pl.col(column).is_in(list(mode.route_types)))
-            .then(pl.lit(mode.limit_kmh))
-            .otherwise(expr)
-        )
-    return expr
+    """The family's speed limit for each row's route type."""
+    return pl.col(column).replace_strict(
+        _LIMIT_BY_CODE, default=SUPERSONIC_KMH, return_dtype=pl.Float64
+    )

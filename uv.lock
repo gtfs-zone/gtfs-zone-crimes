@@ -586,6 +586,7 @@ name = "gtfs-zone-crimes"
 version = "0.9.0"
 source = { editable = "." }
 dependencies = [
+    { name = "gtfs-zone-vocab" },
     { name = "httpx" },
     { name = "polars" },
 ]
@@ -613,6 +614,7 @@ dev = [
 requires-dist = [
     { name = "dagster", marker = "extra == 'pipeline'", specifier = "==1.13.24" },
     { name = "dagster-postgres", marker = "extra == 'pipeline'", specifier = "==0.29.24" },
+    { name = "gtfs-zone-vocab", git = "https://github.com/gtfs-zone/gtfs-zone-vocab.git?tag=v0.1.0" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "obstore", marker = "extra == 'pipeline'", specifier = ">=0.12" },
     { name = "polars", specifier = ">=1.30" },
@@ -630,6 +632,11 @@ dev = [
     { name = "ruff" },
     { name = "vulture", specifier = ">=2.16" },
 ]
+
+[[package]]
+name = "gtfs-zone-vocab"
+version = "0.1.0"
+source = { git = "https://github.com/gtfs-zone/gtfs-zone-vocab.git?tag=v0.1.0#52bc8ee4eb2f7059e1b5050ee73dbb55858e3599" }
 
 [[package]]
 name = "h11"

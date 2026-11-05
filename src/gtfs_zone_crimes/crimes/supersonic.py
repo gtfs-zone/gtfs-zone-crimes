@@ -12,7 +12,7 @@ import polars as pl
 
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Part, Ref, Scope, Verdict, linked
 from gtfs_zone_crimes.crimes.null_island import stray_stops
-from gtfs_zone_crimes.modes import limit_expr, mode_of
+from gtfs_zone_crimes.modes import limit_expr, mode_name
 from gtfs_zone_crimes.parse import Gtfs
 
 MIN_KM = 2.0
@@ -63,7 +63,7 @@ def judge(gtfs: Gtfs) -> Verdict | None:
         return ("stop", stop_id, names.get(stop_id, stop_id))
 
     def describe(row: dict[str, Any]) -> tuple[str, list[Ref]]:
-        mode = mode_of(row["route_type"]).name
+        mode = mode_name(row["route_type"])
         minutes = row["seconds"] / 60
         parts: list[Part] = [
             stop(row["from_stop"]),
