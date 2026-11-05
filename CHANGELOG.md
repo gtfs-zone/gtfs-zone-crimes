@@ -1,3 +1,9 @@
+## v0.9.0 (2026-11-05)
+
+### Feat
+
+- **pipeline**: bucket over obstore instead of boto3
+
 ## v0.8.1 (2026-11-01)
 
 ### Fix
