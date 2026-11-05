@@ -12,8 +12,7 @@ dependencies = [
 [project.optional-dependencies]
 # dagster pinned to feed-catalog's: this is a code location in its instance.
 pipeline = [
-    "boto3>=1.35",
-    "botocore>=1.35",
+    "obstore>=0.12",
     "dagster==1.13.24",
     "dagster-postgres==0.29.24",
     # 2.1 drives postgresql:// with psycopg 3; the instance uses psycopg2.
@@ -32,7 +31,6 @@ dev = [
     "commitizen",
     "dagster-webserver==1.13.24",
     "deptry>=0.25.1",
-    "moto[s3]>=5.0",
     "pytest>=8.0",
     "respx>=0.22",
     "ruff",

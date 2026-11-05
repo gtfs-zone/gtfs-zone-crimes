@@ -5,11 +5,12 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError
+import obstore
+
+if TYPE_CHECKING:
+    from obstore.store import ObjectStore
 
 # crimes.json refreshes daily, so browsers and proxies may keep it only briefly.
 CACHE_CONTROL = "public, max-age=600"
@@ -34,36 +35,49 @@ class BucketSettings:
         )
 
 
+def s3_store(settings: BucketSettings) -> ObjectStore:
+    from obstore.store import S3Store
+
+    return S3Store(
+        settings.bucket,
+        endpoint=settings.endpoint,
+        region=settings.region,
+        access_key_id=settings.access_key,
+        secret_access_key=settings.secret_key,
+        # Garage serves every bucket from one host, so the bucket goes in the
+        # path.
+        virtual_hosted_style_request=False,
+        client_options={
+            "allow_http": settings.endpoint.startswith("http://"),
+            "timeout": "120s",
+        },
+    )
+
+
 class Bucket:
-    def __init__(self, settings: BucketSettings) -> None:
+    """get_json / put_json against one bucket, or against `store`."""
+
+    def __init__(
+        self, settings: BucketSettings, store: ObjectStore | None = None
+    ) -> None:
         self.name = settings.bucket
-        self._client = boto3.client(
-            "s3",
-            endpoint_url=settings.endpoint,
-            aws_access_key_id=settings.access_key,
-            aws_secret_access_key=settings.secret_key,
-            region_name=settings.region,
-            # Garage serves every bucket from one host, so the bucket goes in
-            # the path.
-            config=Config(s3={"addressing_style": "path"}, retries={"max_attempts": 3}),
-        )
+        self._store = store if store is not None else s3_store(settings)
 
     def get_json(self, key: str) -> dict[str, Any] | None:
         """The object parsed as JSON, or None when there is no such key."""
         try:
-            response = self._client.get_object(Bucket=self.name, Key=key)
-        except ClientError as exc:
-            if exc.response.get("Error", {}).get("Code") in ("NoSuchKey", "404"):
-                return None
-            raise
-        with response["Body"] as stream:
-            return json.loads(stream.read())
+            return json.loads(bytes(obstore.get(self._store, key).bytes()))
+        except FileNotFoundError:
+            return None
 
     def put_json(self, key: str, doc: dict[str, Any], public: bool = True) -> None:
-        self._client.put_object(
-            Bucket=self.name,
-            Key=key,
-            Body=json.dumps(doc, ensure_ascii=False, separators=(",", ":")).encode(),
-            ContentType="application/json",
-            CacheControl=CACHE_CONTROL if public else "no-store",
+        obstore.put(
+            self._store,
+            key,
+            json.dumps(doc, ensure_ascii=False, separators=(",", ":")).encode(),
+            use_multipart=False,
+            attributes={
+                "Content-Type": "application/json",
+                "Cache-Control": CACHE_CONTROL if public else "no-store",
+            },
         )
