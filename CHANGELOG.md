@@ -1,3 +1,9 @@
+## v0.10.1 (2026-11-19)
+
+### Refactor
+
+- download, sniff and zip facts from gtfs-zone-feed-fetch
+
 ## v0.10.0 (2026-11-05)
 
 ### Feat
