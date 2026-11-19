@@ -1,8 +1,9 @@
 """Data ONLY: a big feed with no feed_info.txt, so nothing in it says who
 publishes it, which version it is, or whom to tell when it is wrong."""
 
+from gtfs_zone_feed_fetch.zipfacts import ZipFacts
+
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
-from gtfs_zone_crimes.zipfacts import ZipFacts
 
 MIN_BYTES = 10_000_000
 

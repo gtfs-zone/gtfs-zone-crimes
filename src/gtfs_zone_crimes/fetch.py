@@ -3,47 +3,22 @@ streamed to a temp file and hashed on the way."""
 
 from __future__ import annotations
 
-import hashlib
-import tempfile
-from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-import httpx
+from gtfs_zone_feed_fetch.fetch import Fetched
+from gtfs_zone_feed_fetch.fetch import conditional_headers as validator_headers
+from gtfs_zone_feed_fetch.fetch import fetch as fetch_url
 
 from gtfs_zone_crimes.record import LogEntry
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
+    import httpx
+
     from gtfs_zone_crimes.record import UrlRecord
 
 USER_AGENT = "gtfs-zone-crimes (+https://crimes.gtfs.zone)"
-
-
-@dataclass
-class Fetched:
-    status: int | None = None
-    error: str | None = None
-    etag: str | None = None
-    last_modified: str | None = None
-    path: Path | None = None
-    sha256: str | None = None
-    kind: str | None = None
-
-
-def sniff(head: bytes) -> str:
-    """What a body is from its first bytes: zip, empty, html, json, xml or unknown."""
-    if head.startswith((b"PK\x03\x04", b"PK\x05\x06")):
-        return "zip"
-    head = head[:512].lstrip().lower()
-    if not head:
-        return "empty"
-    if head.startswith((b"<!doctype html", b"<html")) or b"<html" in head:
-        return "html"
-    if head.startswith((b"{", b"[")):
-        return "json"
-    if head.startswith(b"<"):
-        return "xml"
-    return "unknown"
 
 
 def conditional_headers(record: UrlRecord | None, version: str) -> dict[str, str]:
@@ -51,12 +26,7 @@ def conditional_headers(record: UrlRecord | None, version: str) -> dict[str, str
     last zip yet and needs its bytes again."""
     if record is None or record.judged_version != version or record.kind != "zip":
         return {}
-    headers = {}
-    if record.etag:
-        headers["If-None-Match"] = record.etag
-    if record.last_modified:
-        headers["If-Modified-Since"] = record.last_modified
-    return headers
+    return validator_headers(record.etag, record.last_modified)
 
 
 def fetch(
@@ -69,42 +39,9 @@ def fetch(
 ) -> Fetched:
     """The response to a conditional GET of `url`. A 200 body is written to a
     temp file in `workdir` that the caller deletes."""
-    try:
-        with client.stream(
-            "GET", url, headers=conditional_headers(record, version)
-        ) as response:
-            out = Fetched(
-                status=response.status_code,
-                etag=response.headers.get("etag"),
-                last_modified=response.headers.get("last-modified"),
-            )
-            if response.status_code != 200:
-                return out
-            digest = hashlib.sha256()
-            size = 0
-            head = b""
-            with tempfile.NamedTemporaryFile(
-                dir=workdir, suffix=".zip", delete=False
-            ) as handle:
-                out.path = Path(handle.name)
-                for chunk in response.iter_bytes(1 << 20):
-                    size += len(chunk)
-                    if size > max_bytes:
-                        out.error = f"larger than {max_bytes} bytes"
-                        break
-                    if len(head) < 512:
-                        head += chunk[: 512 - len(head)]
-                    digest.update(chunk)
-                    handle.write(chunk)
-            if out.error:
-                out.path.unlink(missing_ok=True)
-                out.path = None
-                return out
-            out.sha256 = digest.hexdigest()
-            out.kind = sniff(head)
-            return out
-    except httpx.HTTPError as exc:
-        return Fetched(error=f"{type(exc).__name__}: {exc}")
+    return fetch_url(
+        client, url, conditional_headers(record, version), workdir, max_bytes
+    )
 
 
 def update_record(

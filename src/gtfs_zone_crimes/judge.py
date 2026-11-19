@@ -8,11 +8,12 @@ import zipfile
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
+from gtfs_zone_feed_fetch.zipfacts import read_zipfacts
+
 from gtfs_zone_crimes.crime import ACQUITTED, CatalogCase, Scope, Verdict
 from gtfs_zone_crimes.facts import service_facts
 from gtfs_zone_crimes.parse import Gtfs
 from gtfs_zone_crimes.registry import CRIMES
-from gtfs_zone_crimes.zipfacts import read_zipfacts
 
 if TYPE_CHECKING:
     from collections.abc import Callable
