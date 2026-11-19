@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from datetime import date
     from pathlib import Path
 
-    from gtfs_zone_crimes.zipfacts import ZipFacts
+    from gtfs_zone_feed_fetch.zipfacts import ZipFacts
 
 EARTH_RADIUS_KM = 6371.0088
 # shapes.txt is judged on its first rows: enough to judge it by, and a few

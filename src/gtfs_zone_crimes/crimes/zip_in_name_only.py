@@ -3,8 +3,9 @@ as big as the CSVs inside."""
 
 import zipfile
 
+from gtfs_zone_feed_fetch.zipfacts import ZipFacts
+
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
-from gtfs_zone_crimes.zipfacts import ZipFacts
 
 MIN_BYTES = 1_000_000
 

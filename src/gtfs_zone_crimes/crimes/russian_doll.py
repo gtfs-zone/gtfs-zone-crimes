@@ -4,8 +4,9 @@ for the ride."""
 
 from pathlib import PurePosixPath
 
+from gtfs_zone_feed_fetch.zipfacts import ZipFacts
+
 from gtfs_zone_crimes.crime import ACQUITTED, Crime, Scope, Verdict
-from gtfs_zone_crimes.zipfacts import ZipFacts
 
 LITTER = ("__MACOSX/", ".DS_Store", "Thumbs.db", "desktop.ini")
 # Extensions a GTFS zip carries: the spec's files and producers' extra tables.

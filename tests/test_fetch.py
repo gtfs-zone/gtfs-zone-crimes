@@ -1,20 +1,12 @@
 import httpx
 import respx
 
-from gtfs_zone_crimes.fetch import Fetched, fetch, sniff, update_record
+from gtfs_zone_crimes.fetch import Fetched, fetch, update_record
 from gtfs_zone_crimes.record import UrlRecord
 from tests.conftest import fixture_files, make_zip
 
 URL = "https://example.org/gtfs.zip"
 ZIP = make_zip(fixture_files())
-
-
-def test_sniff():
-    assert sniff(ZIP[:512]) == "zip"
-    assert sniff(b"  <!DOCTYPE html><html>") == "html"
-    assert sniff(b'{"error": "key"}') == "json"
-    assert sniff(b"<?xml version='1.0'?>") == "xml"
-    assert sniff(b"") == "empty"
 
 
 @respx.mock
