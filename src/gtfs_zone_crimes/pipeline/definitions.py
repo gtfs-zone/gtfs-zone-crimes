@@ -1,5 +1,5 @@
-"""Dagster entrypoint: one asset judging every feed daily, after feed-catalog
-(09:00 UTC) and timetable-sites (11:00 UTC) have had the single run slot."""
+"""Dagster entrypoint: one asset judging every feed daily, after feed-catalog's
+09:00 UTC catalog run."""
 
 import os
 from importlib.metadata import version
@@ -59,7 +59,11 @@ def crimes(context: AssetExecutionContext) -> MaterializeResult:
     )
 
 
-crimes_job = define_asset_job("crimes_job", selection=[crimes])
+# The Dagster instance runs one `gtfs.zone/memory: heavy` run at a time, so this
+# never overlaps a timetable-sites shard on the node.
+crimes_job = define_asset_job(
+    "crimes_job", selection=[crimes], tags={"gtfs.zone/memory": "heavy"}
+)
 
 daily = ScheduleDefinition(
     job=crimes_job,

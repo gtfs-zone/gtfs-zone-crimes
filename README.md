@@ -82,8 +82,7 @@ scripts/check.sh                            # everything CI checks
 Measured on 152 feeds (1.1 GB of zips): 33 s of judging, 6.5 min wall clock,
 almost all of it polite downloading. Entur (535 MB zip, 2.4 GB of shapes)
 judges in 4.4 s at a 3 GB peak. A first run over all ~4,800 reachable feeds
-(about 17 GB) takes one to two hours of the shared run slot; later runs
-download only what changed.
+(about 17 GB) takes one to two hours; later runs download only what changed.
 
 ## Data
 
