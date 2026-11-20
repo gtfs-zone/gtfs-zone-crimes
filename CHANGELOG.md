@@ -1,3 +1,9 @@
+## v0.11.0 (2026-11-20)
+
+### Feat
+
+- **pipeline**: tag crimes runs gtfs.zone/memory: heavy
+
 ## v0.10.1 (2026-11-19)
 
 ### Refactor
