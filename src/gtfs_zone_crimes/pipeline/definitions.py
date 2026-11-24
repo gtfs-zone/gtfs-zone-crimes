@@ -33,6 +33,7 @@ RECORDS_KEY = "state/records.json"
 def crimes(context: AssetExecutionContext) -> MaterializeResult:
     """Judge every feed in feeds.json and publish crimes.json."""
     bucket = Bucket(BucketSettings.from_env())
+    zips_settings = BucketSettings.zips_from_env()
     feeds_doc = (
         httpx.get(FEEDS_URL, headers={"User-Agent": USER_AGENT}, timeout=120)
         .raise_for_status()
@@ -44,6 +45,7 @@ def crimes(context: AssetExecutionContext) -> MaterializeResult:
         bucket.get_json(RECORDS_KEY),
         Settings.from_env(),
         VERSION,
+        zips=Bucket(zips_settings) if zips_settings else None,
     )
     bucket.put_json(RECORDS_KEY, records, public=False)
     bucket.put_json(CRIMES_KEY, doc)
