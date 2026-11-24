@@ -38,7 +38,8 @@ scripts/check.sh               # what CI and the pre-commit hook run
 - **Large tables stay narrow.** `Gtfs.sequence` holds stop_times with
   categorical ids, Float32 coordinates and Int32 times; shapes.txt is judged
   on its first 128 MB in file order. Keep new content crimes on those frames.
-- **Polite downloads**: conditional GETs, one request at a time per host with
+- **Polite downloads**: zips come from feed-catalog's store; the URLs it does
+  not fetch get conditional GETs, one request at a time per host with
   a delay, an honest User-Agent. Keep it that way.
 - **Links go out, never in.** The site links to list.gtfs.zone; no other
   gtfs.zone site is changed to link here.

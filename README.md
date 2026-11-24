@@ -32,14 +32,19 @@ check in `src/gtfs_zone_crimes/crimes/`.
 
 ## How it works
 
-A Dagster code location in gtfs-zone-feed-catalog's instance runs daily at
-14:00 UTC, after the catalog and timetable-sites runs:
+A Dagster code location in gtfs-zone-feed-catalog's instance runs after each
+materialization of feed-catalog's `published_artifacts` (its daily catalog
+run), in the instance's one heavy slot, so after or before the timetable-sites
+shards:
 
 1. Read `data.gtfs.zone/feeds.json` and the previous `crimes.json` and
    `state/records.json` from the crimes bucket.
-2. Download every scheduled URL with a conditional GET (ETag /
-   Last-Modified), hosts in parallel, one request at a time per host with a
-   pause between them.
+2. Take each scheduled URL's response (status, ETag / Last-Modified, sha256,
+   kind) from feed-catalog's download that day in `gtfs/index.json` of the
+   `gtfs-zips` bucket, and read a zip from there when it needs judging. A URL
+   not in the index (behind a key, ftp, or without `ZIPS_S3_ENDPOINT`) gets
+   a conditional GET, hosts in parallel, one request at a time per host with
+   a pause between them.
 3. Judge each zip whose bytes changed (or that a new release has not judged)
    in a worker process watched for memory: the central directory for archive
    crimes, polars over the extracted tables for content crimes. Verdicts are
@@ -67,14 +72,14 @@ scripts/check.sh                            # everything CI checks
 | `CRIMES_CONCURRENCY` | 8 | Hosts downloaded from at once |
 | `CRIMES_PER_HOST_DELAY_SECONDS` | 1.0 | Pause between requests to one host |
 | `CRIMES_TIMEOUT_SECONDS` | 120 | Per-request timeout |
-| `CRIMES_MAX_DOWNLOAD_BYTES` | 2000000000 | Downloads larger than this are abandoned |
+| `CRIMES_MAX_DOWNLOAD_BYTES` | 2000000000 | Downloads and stored zips larger than this are not judged |
 | `CRIMES_WORKERS` | 2 | Zips judged at once, each in its own process |
 | `CRIMES_WORKER_MEMORY` | 5000000000 | Resident bytes a judging process may reach before it is killed and the zip left unjudged |
 | `CRIMES_WORKDIR` | `$TMPDIR` | Downloads and extracted tables |
 | `CRIMES_FEEDS` | | Comma-separated feed ids to judge, for local runs |
-| `CRIMES_SCHEDULE` | `0 14 * * *` | Daily schedule (UTC) |
 | `POLARS_MAX_THREADS` | cores | Threads per judging process |
 | `S3_ENDPOINT` `S3_BUCKET` `S3_ACCESS_KEY` `S3_SECRET_KEY` `S3_REGION` | | The crimes bucket (`crimes.gtfs.zone`) |
+| `ZIPS_S3_ENDPOINT` `ZIPS_S3_BUCKET` `ZIPS_S3_ACCESS_KEY` `ZIPS_S3_SECRET_KEY` `ZIPS_S3_REGION` | | feed-catalog's schedule bucket (`gtfs-zips`), read only; unset downloads every URL |
 | `GATUS_URL` `GATUS_TOKEN` `GATUS_ENDPOINT_KEY` | | Heartbeat after a publish (`data_crimes-publish`) |
 
 ## Cost
@@ -82,7 +87,8 @@ scripts/check.sh                            # everything CI checks
 Measured on 152 feeds (1.1 GB of zips): 33 s of judging, 6.5 min wall clock,
 almost all of it polite downloading. Entur (535 MB zip, 2.4 GB of shapes)
 judges in 4.4 s at a 3 GB peak. A first run over all ~4,800 reachable feeds
-(about 17 GB) takes one to two hours; later runs download only what changed.
+(about 17 GB) takes one to two hours; later runs read only the zips that
+changed, from the store.
 
 ## Data
 
