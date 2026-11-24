@@ -37,8 +37,9 @@ materialization of feed-catalog's `published_artifacts` (its daily catalog
 run), in the instance's one heavy slot, so after or before the timetable-sites
 shards:
 
-1. Read `data.gtfs.zone/feeds.json` and the previous `crimes.json` and
-   `state/records.json` from the crimes bucket.
+1. Read `data.gtfs.zone/feeds.json`, timetable-sites' `sites.gtfs.zone/slugs.json`
+   (each feed links to its page there, or to list.gtfs.zone without a slug)
+   and the previous `crimes.json` and `state/records.json` from the crimes bucket.
 2. Take each scheduled URL's response (status, ETag / Last-Modified, sha256,
    kind) from feed-catalog's download that day in `gtfs/index.json` of the
    `gtfs-zips` bucket, and read a zip from there when it needs judging. A URL

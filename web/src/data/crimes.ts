@@ -58,6 +58,8 @@ export interface FeedSummary {
   realtime?: Partial<Record<RealtimeRole, string>>;
   /** trips.txt rows, which rank convictions by feed size. */
   trips?: number;
+  /** The feed's page on timetable-sites is at /<slug>/. */
+  slug?: string;
 }
 
 export interface Attribution {

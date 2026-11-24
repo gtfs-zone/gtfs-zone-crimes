@@ -47,11 +47,13 @@ def judge_session(
     version: str,
     today: date | None = None,
     zips: Zips | None = None,
+    slugs: dict[str, str] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, int]]:
     """(crimes.json, records, counts by download outcome). URLs in the schedule
-    index of `zips` are judged on feed-catalog's download, the rest on a GET."""
+    index of `zips` are judged on feed-catalog's download, the rest on a GET.
+    `slugs` maps feed ids to timetable-sites slugs for the feed links."""
     today = today or datetime.now(UTC).date()
-    feeds = parse_feeds(feeds_doc)
+    feeds = parse_feeds(feeds_doc, slugs)
     if settings.only:
         feeds = [feed for feed in feeds if feed.id in settings.only]
     records = load_records(records_doc)

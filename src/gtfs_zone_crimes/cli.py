@@ -11,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-from gtfs_zone_crimes.catalog import FEEDS_URL
+from gtfs_zone_crimes.catalog import FEEDS_URL, fetch_slugs
 from gtfs_zone_crimes.fetch import USER_AGENT
 from gtfs_zone_crimes.session import judge_session
 from gtfs_zone_crimes.settings import Settings
@@ -34,14 +34,12 @@ def main() -> None:
         level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
     )
 
-    if args.feeds_json:
-        feeds_doc = json.loads(Path(args.feeds_json).read_text())
-    else:
-        feeds_doc = (
-            httpx.get(FEEDS_URL, headers={"User-Agent": USER_AGENT}, timeout=120)
-            .raise_for_status()
-            .json()
-        )
+    with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=120) as client:
+        if args.feeds_json:
+            feeds_doc = json.loads(Path(args.feeds_json).read_text())
+        else:
+            feeds_doc = client.get(FEEDS_URL).raise_for_status().json()
+        slugs = fetch_slugs(client)
     args.out.mkdir(parents=True, exist_ok=True)
     crimes, records, counts = judge_session(
         feeds_doc,
@@ -49,6 +47,7 @@ def main() -> None:
         read(args.out / "records.json"),
         Settings.from_env(),
         version("gtfs-zone-crimes"),
+        slugs=slugs,
     )
     (args.out / "crimes.json").write_text(json.dumps(crimes, ensure_ascii=False))
     (args.out / "records.json").write_text(json.dumps(records, ensure_ascii=False))

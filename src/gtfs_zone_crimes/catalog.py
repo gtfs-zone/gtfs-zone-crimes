@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+import httpx
+
+log = logging.getLogger(__name__)
+
 FEEDS_URL = "https://data.gtfs.zone/feeds.json"
+# timetable-sites' feed id to slug map; every catalog feed has a page at /<slug>/.
+SLUGS_URL = "https://sites.gtfs.zone/slugs.json"
 REALTIME_ROLES = ("vehicles", "trip_updates", "alerts", "realtime")
 
 
@@ -29,6 +36,8 @@ class CatalogFeed:
     trips: int | None = None
     # First URL of each realtime role open without a key, for the viewer link.
     realtime_urls: dict[str, str] = field(default_factory=dict)
+    # The feed's timetable-sites slug, when sites has assigned one.
+    slug: str | None = None
 
     @property
     def url(self) -> str | None:
@@ -48,6 +57,8 @@ class CatalogFeed:
             out["realtime"] = self.realtime_urls
         if trips:
             out["trips"] = trips
+        if self.slug:
+            out["slug"] = self.slug
         return out
 
 
@@ -57,7 +68,7 @@ def place_of(entry: dict[str, Any]) -> str | None:
     return place or None
 
 
-def parse_feed(entry: dict[str, Any]) -> CatalogFeed:
+def parse_feed(entry: dict[str, Any], slug: str | None = None) -> CatalogFeed:
     content = entry.get("content") or {}
     urls = entry.get("urls", {})
     auth = frozenset(entry.get("auth", []))
@@ -78,10 +89,26 @@ def parse_feed(entry: dict[str, Any]) -> CatalogFeed:
             for role in REALTIME_ROLES
             if urls.get(role) and role not in auth
         },
+        slug=slug,
     )
 
 
-def parse_feeds(doc: dict[str, Any]) -> list[CatalogFeed]:
-    """Every feed with a scheduled URL; realtime-only feeds are not judged."""
-    feeds = (parse_feed(entry) for entry in doc["feeds"])
+def parse_feeds(
+    doc: dict[str, Any], slugs: dict[str, str] | None = None
+) -> list[CatalogFeed]:
+    """Every feed with a scheduled URL; realtime-only feeds are not judged.
+    `slugs` maps feed ids to timetable-sites slugs."""
+    slugs = slugs or {}
+    feeds = (parse_feed(entry, slugs.get(entry["feedId"])) for entry in doc["feeds"])
     return [feed for feed in feeds if feed.scheduled_urls]
+
+
+def fetch_slugs(client: httpx.Client) -> dict[str, str]:
+    """timetable-sites' slugs.json; empty when it cannot be read, so feeds
+    link to list.gtfs.zone instead."""
+    try:
+        doc = client.get(SLUGS_URL).raise_for_status().json()
+    except (httpx.HTTPError, ValueError) as error:
+        log.warning("%s unreadable: %s", SLUGS_URL, error)
+        return {}
+    return {k: v for k, v in doc.items() if isinstance(v, str)}
