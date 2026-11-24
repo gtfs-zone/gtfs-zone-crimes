@@ -16,7 +16,9 @@ export const CONFIG = Object.freeze({
   // Feeds on the Most Wanted page.
   MOST_WANTED: 100,
 
-  // Sibling apps a feed links to. Same targets as gtfs-zone-feed-list.
+  // Sibling apps a feed links to. A feed with a timetable-sites slug links to
+  // its page there, any other to list.gtfs.zone.
+  SITES_BASE: 'https://sites.gtfs.zone/',
   LIST_FEED_BASE: 'https://list.gtfs.zone/feed/',
   EDITOR_BASE: 'https://edit.gtfs.zone',
   VIEWER_BASE: 'https://viz.rt.gtfs.zone',

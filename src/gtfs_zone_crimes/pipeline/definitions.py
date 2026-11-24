@@ -17,7 +17,7 @@ from dagster import (
     define_asset_job,
 )
 
-from gtfs_zone_crimes.catalog import FEEDS_URL
+from gtfs_zone_crimes.catalog import FEEDS_URL, fetch_slugs
 from gtfs_zone_crimes.fetch import USER_AGENT
 from gtfs_zone_crimes.pipeline.bucket import Bucket, BucketSettings
 from gtfs_zone_crimes.pipeline.heartbeat import push_heartbeat
@@ -41,11 +41,9 @@ def crimes(context: AssetExecutionContext) -> MaterializeResult:
     """Judge every feed in feeds.json and publish crimes.json."""
     bucket = Bucket(BucketSettings.from_env())
     zips_settings = BucketSettings.zips_from_env()
-    feeds_doc = (
-        httpx.get(FEEDS_URL, headers={"User-Agent": USER_AGENT}, timeout=120)
-        .raise_for_status()
-        .json()
-    )
+    with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=120) as client:
+        feeds_doc = client.get(FEEDS_URL).raise_for_status().json()
+        slugs = fetch_slugs(client)
     doc, records, counts = judge_session(
         feeds_doc,
         bucket.get_json(CRIMES_KEY),
@@ -53,6 +51,7 @@ def crimes(context: AssetExecutionContext) -> MaterializeResult:
         Settings.from_env(),
         VERSION,
         zips=Bucket(zips_settings) if zips_settings else None,
+        slugs=slugs,
     )
     bucket.put_json(RECORDS_KEY, records, public=False)
     bucket.put_json(CRIMES_KEY, doc)

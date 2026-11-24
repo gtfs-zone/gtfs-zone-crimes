@@ -43,9 +43,11 @@ export const en = {
 
   'feed.title': 'Rap sheet',
   'feed.list': 'View on list.gtfs.zone',
+  'feed.site': 'View on sites.gtfs.zone',
   'feed.edit': 'Open in the editor',
   'feed.viz': 'Watch it live',
   'feed.listShort': 'list.gtfs.zone',
+  'feed.siteShort': 'sites.gtfs.zone',
   'feed.clean': 'No active convictions.',
   'feed.pardons': 'Pardons',
   'feed.unknown': 'This feed has no record.',

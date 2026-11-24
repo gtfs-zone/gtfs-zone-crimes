@@ -41,7 +41,8 @@ scripts/check.sh               # what CI and the pre-commit hook run
 - **Polite downloads**: zips come from feed-catalog's store; the URLs it does
   not fetch get conditional GETs, one request at a time per host with
   a delay, an honest User-Agent. Keep it that way.
-- **Links go out, never in.** The site links to list.gtfs.zone; no other
+- **Links go out, never in.** The site links to a feed's sites.gtfs.zone page
+  (list.gtfs.zone without a slug); no other
   gtfs.zone site is changed to link here.
 - **Pages are prerendered for crawlers.** The `prerender` plugin in
   `vite.config.ts` writes `crime/<slug>/index.html`, `most-wanted/` and

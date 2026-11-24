@@ -25,7 +25,7 @@ export function daysBetween(from: string, to: string): number {
 }
 
 /**
- * The feed's name linking to its rap sheet, a small link to list.gtfs.zone
+ * The feed's name linking to its rap sheet, a small link to its catalog page
  * beside it, and its place under it.
  */
 export function feedCell(doc: CrimesDoc, feedId: string): string {
@@ -34,7 +34,7 @@ export function feedCell(doc: CrimesDoc, feedId: string): string {
   const sub = [feed?.subtitle, feed?.place].filter(Boolean).join(' - ');
   return (
     `<a href="/feed/${feedId}" class="link link-hover font-medium wrap-anywhere">${name}</a>` +
-    ` <a href="${listUrl(feedId)}" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs opacity-60 whitespace-nowrap">${t('feed.listShort')}</a>` +
+    ` <a href="${escapeHtml(feedUrl(feedId, feed))}" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs opacity-60 whitespace-nowrap">${t(feed?.slug ? 'feed.siteShort' : 'feed.listShort')}</a>` +
     (sub
       ? `<div class="text-xs opacity-60 wrap-anywhere">${escapeHtml(sub)}</div>`
       : '')
@@ -81,8 +81,11 @@ function linkRefs(line: string, refs: Ref[], editor: string | null): string {
   return html + escapeHtml(line.slice(at));
 }
 
-export function listUrl(feedId: string): string {
-  return `${CONFIG.LIST_FEED_BASE}${encodeURIComponent(feedId)}`;
+/** The feed's page on timetable-sites, or on list.gtfs.zone without a slug. */
+export function feedUrl(feedId: string, feed?: FeedSummary): string {
+  return feed?.slug
+    ? `${CONFIG.SITES_BASE}${encodeURIComponent(feed.slug)}/`
+    : `${CONFIG.LIST_FEED_BASE}${encodeURIComponent(feedId)}`;
 }
 
 /** The editor needs a schedule and nothing else. Mirrors feed-list's app-links.ts. */
@@ -121,10 +124,14 @@ export function viewerUrl(feed: FeedSummary): string | null {
   return `${CONFIG.VIEWER_BASE}/#${params.toString()}`;
 }
 
-/** Buttons to the feed on list.gtfs.zone, in the editor and, with realtime, the visualizer. */
+/** Buttons to the feed's catalog page, the editor and, with realtime, the visualizer. */
 export function feedLinks(feedId: string, feed: FeedSummary): string {
   const links = [
-    [listUrl(feedId), t('feed.list'), 'btn-primary'],
+    [
+      feedUrl(feedId, feed),
+      t(feed.slug ? 'feed.site' : 'feed.list'),
+      'btn-primary',
+    ],
     [editorUrl(feed), t('feed.edit'), ''],
     [viewerUrl(feed), t('feed.viz'), ''],
   ] as const;
