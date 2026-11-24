@@ -1,3 +1,9 @@
+## v0.13.0 (2026-11-25)
+
+### Feat
+
+- **feeds**: link each feed to its sites.gtfs.zone page from slugs.json, list.gtfs.zone without a slug
+
 ## v0.12.0 (2026-11-24)
 
 ### Feat
