@@ -1,3 +1,10 @@
+## v0.12.0 (2026-11-24)
+
+### Feat
+
+- **pipeline**: run crimes after feed-catalog's published_artifacts instead of the 14:00 UTC schedule
+- **pipeline**: judge feeds on feed-catalog's downloads from the gtfs-zips store, GET only for URLs missing from its index
+
 ## v0.11.0 (2026-11-20)
 
 ### Feat
