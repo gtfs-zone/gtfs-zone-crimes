@@ -1,4 +1,4 @@
-"""The crimes bucket over the S3 API."""
+"""The crimes bucket and feed-catalog's schedule bucket over the S3 API."""
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any
 import obstore
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from obstore.store import ObjectStore
 
 # crimes.json refreshes daily, so browsers and proxies may keep it only briefly.
@@ -34,6 +36,21 @@ class BucketSettings:
             region=os.environ.get("S3_REGION", "garage"),
         )
 
+    @classmethod
+    def zips_from_env(cls) -> BucketSettings | None:
+        """The schedule bucket feed-catalog writes, read with the `ZIPS_S3_*`
+        keys, or None when `ZIPS_S3_ENDPOINT` is unset."""
+        endpoint = os.environ.get("ZIPS_S3_ENDPOINT", "")
+        if not endpoint:
+            return None
+        return cls(
+            endpoint=endpoint,
+            bucket=os.environ.get("ZIPS_S3_BUCKET", "gtfs-zips"),
+            access_key=os.environ["ZIPS_S3_ACCESS_KEY"],
+            secret_key=os.environ["ZIPS_S3_SECRET_KEY"],
+            region=os.environ.get("ZIPS_S3_REGION", "garage"),
+        )
+
 
 def s3_store(settings: BucketSettings) -> ObjectStore:
     from obstore.store import S3Store
@@ -55,7 +72,8 @@ def s3_store(settings: BucketSettings) -> ObjectStore:
 
 
 class Bucket:
-    """get_json / put_json against one bucket, or against `store`."""
+    """get / download / get_json / put_json against one bucket, or against
+    `store`."""
 
     def __init__(
         self, settings: BucketSettings, store: ObjectStore | None = None
@@ -63,12 +81,28 @@ class Bucket:
         self.name = settings.bucket
         self._store = store if store is not None else s3_store(settings)
 
-    def get_json(self, key: str) -> dict[str, Any] | None:
-        """The object parsed as JSON, or None when there is no such key."""
+    def get(self, key: str) -> bytes | None:
+        """The object's body, or None when there is no such key."""
         try:
-            return json.loads(bytes(obstore.get(self._store, key).bytes()))
+            return bytes(obstore.get(self._store, key).bytes())
         except FileNotFoundError:
             return None
+
+    def download(self, key: str, path: Path) -> bool:
+        """Stream the object to `path`; False when there is no such key."""
+        try:
+            result = obstore.get(self._store, key)
+        except FileNotFoundError:
+            return False
+        with path.open("wb") as out:
+            for chunk in result:
+                out.write(chunk)
+        return True
+
+    def get_json(self, key: str) -> dict[str, Any] | None:
+        """The object parsed as JSON, or None when there is no such key."""
+        body = self.get(key)
+        return None if body is None else json.loads(body)
 
     def put_json(self, key: str, doc: dict[str, Any], public: bool = True) -> None:
         obstore.put(
