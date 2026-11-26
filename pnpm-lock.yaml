@@ -16,10 +16,10 @@ importers:
         version: 5.7.50
       gtfs-zone-vocab:
         specifier: github:gtfs-zone/gtfs-zone-vocab#v0.1.0
-        version: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599
+        version: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd
       gtfs-zone-web-common:
         specifier: github:gtfs-zone/gtfs-zone-web-common#v5.16.0
-        version: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c(@leeoniya/ufuzzy@1.0.19)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599)(jszip@3.10.2)(maplibre-gl@6.15.0)(papaparse@5.7.0)
+        version: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c(@leeoniya/ufuzzy@1.0.19)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd)(jszip@3.10.2)(maplibre-gl@6.15.0)(papaparse@5.7.0)
       marked:
         specifier: ^16.4.1
         version: 16.4.2
@@ -1104,12 +1104,12 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599}
+  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd:
+    resolution: {gitHosted: true, integrity: sha512-2Slyy2TEwdreCTz+YxWb2oa7T3rRptxF76j3tp1sCfBwNOZBOKbvTO80Z22MauH9y6zOVWibt1OEzk3RHMcnWA==, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd}
     version: 0.1.0
 
   gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c}
+    resolution: {gitHosted: true, integrity: sha512-GQMDmlJH47uw6kjqdw3ENVZFhmyKWeNZxXi29MElkggoVS4NZ7CzQ6wkIcr6R8GSNPYPDjE9WwTeq7hmy9eO7g==, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c}
     version: 5.16.0
     peerDependencies:
       '@leeoniya/ufuzzy': '*'
@@ -2414,12 +2414,12 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599: {}
+  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd: {}
 
-  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c(@leeoniya/ufuzzy@1.0.19)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599)(jszip@3.10.2)(maplibre-gl@6.15.0)(papaparse@5.7.0):
+  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/25467a21d30d3b46fdf6b483e916ad24f640ef4c(@leeoniya/ufuzzy@1.0.19)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd)(jszip@3.10.2)(maplibre-gl@6.15.0)(papaparse@5.7.0):
     dependencies:
       '@leeoniya/ufuzzy': 1.0.19
-      gtfs-zone-vocab: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599
+      gtfs-zone-vocab: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/21f57b8259d7023b40ee498120f76a48172249fd
       jszip: 3.10.2
       maplibre-gl: 6.15.0
       papaparse: 5.7.0
