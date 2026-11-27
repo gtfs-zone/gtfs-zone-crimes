@@ -29,7 +29,7 @@ importers:
         version: 10.0.1(eslint@10.13.0(jiti@2.7.0))
       '@types/node':
         specifier: ^24.19.0
-        version: 24.19.2
+        version: 24.19.4
       autoprefixer:
         specifier: ^10.6.1
         version: 10.6.1(postcss@8.5.31)
@@ -56,7 +56,7 @@ importers:
         version: 8.72.0(eslint@10.13.0(jiti@2.7.0))(typescript@5.9.3)
       vite:
         specifier: ^7.3.7
-        version: 7.3.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.1)
+        version: 7.3.7(@types/node@24.19.4)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.1)
 
 packages:
 
@@ -838,8 +838,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@24.19.2':
-    resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
+  '@types/node@24.19.4':
+    resolution: {integrity: sha512-s04odlR3ksJrLu7QLi+pddkWLD0RmSbcP9KuWn2/ozQKAp/YgwBC/6x9kJj8yAzZnGPfxePm7zm7nysVPCRagw==}
 
   '@typescript-eslint/eslint-plugin@8.72.0':
     resolution: {integrity: sha512-aysKgysPX9XOv/dk95UkvUDe++Q3n3dJPG9CEWT3RUccxfkPJ+Qn6nhKPDhZXU6Ofo9kgwGWwKyQCnZIXTgngg==}
@@ -2084,7 +2084,7 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@24.19.2':
+  '@types/node@24.19.4':
     dependencies:
       undici-types: 7.24.6
 
@@ -2823,7 +2823,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@7.3.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.1):
+  vite@7.3.7(@types/node@24.19.4)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.1):
     dependencies:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.7)
@@ -2832,7 +2832,7 @@ snapshots:
       rollup: 4.65.0
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.19.2
+      '@types/node': 24.19.4
       fsevents: 2.3.3
       jiti: 2.7.0
       lightningcss: 1.32.0
